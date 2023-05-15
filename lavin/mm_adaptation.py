@@ -92,7 +92,7 @@ def LaVIN(args):
 
     if   args.adapter_type=='repblock' or  args.adapter_type=='repattn':
         set_RepAdapter(llama,args.adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
-        set_Clip_RepAdapter(llama,args.visual_adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
+        set_Clip_RepAdapter(llama.backbone.visual,args.visual_adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
 
 
     torch.set_default_tensor_type(torch.FloatTensor)

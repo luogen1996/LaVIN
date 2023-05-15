@@ -1,5 +1,6 @@
-CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  evaluation.py \
-    --ckpt_dir ../data/weights/7B \
+CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
+    --ckpt_dir ../data/weights/ \
+    --llm_model 7B\
     --tokenizer_path ../data/weights/tokenizer.model \
     --data_root ../data \
     --caption_file ../data/captions.json \
