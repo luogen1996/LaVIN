@@ -1,7 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Tuple,List
+from typing import Tuple
 import os
 import sys
 import torch
@@ -9,15 +9,12 @@ import fire
 import time
 import json
 
-from pathlib import Path
-
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 
 from lavin.eval_model import ModelArgs, Transformer
 from lavin.tokenizer import Tokenizer
 from lavin.generator import LaVIN_Generator
-import pdb
-from repadapter import set_RepAdapter,set_Clip_RepAdapter
+from lavin.mm_adapter import set_RepAdapter,set_Clip_RepAdapter
 from util.base_prompt import build_prompt
 from dataclasses import dataclass
 import re

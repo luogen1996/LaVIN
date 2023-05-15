@@ -30,8 +30,6 @@ class ModelArgs:
     max_batch_size: int = 32
     max_seq_len: int = 2048
 
-    adapter_len: int=10
-    adapter_layer: int=8
 
 
 class RMSNorm(torch.nn.Module):

@@ -31,32 +31,35 @@ def get_args_parser():
     # Model parameters
     parser.add_argument('--llama_model_path', default='./llama', type=str,
                         help='path of llama model')
-    parser.add_argument('--model', default='llama7B_adapter', type=str, metavar='MODEL',
-                        help='Name of model to train')
+    # parser.add_argument('--model', default='llama7B_adapter', type=str, metavar='MODEL',
+    #                     help='Name of model to train')
 
     parser.add_argument('--llm_model', default='7B', type=str, metavar='MODEL',
                         help='Name of llm model to train')
-    parser.add_argument('--adapter_layer', type=int, default=30, metavar='LENGTH',
-                        help='the number of adapter layer')
+    # parser.add_argument('--adapter_layer', type=int, default=30, metavar='LENGTH',
+    #                     help='the number of adapter layer')
 
-    parser.add_argument('--adapter_type', type=str, default='repattn', metavar='LENGTH',choices=['repblock','repattn','default'],
+    #block is not supported now.
+    parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
+                        help='the insert position  of adapter layer')
+
+
+    parser.add_argument('--visual_adapter_type', type=str, default='normal', metavar='LENGTH',choices=['normal','router','router_block'],
                         help='the type of adapter layer')
 
-    parser.add_argument('--visual_adapter_type', type=str, default='normal', metavar='LENGTH',choices=['normal','router','full_router'],
-                        help='the type of adapter layer')
     parser.add_argument('--adapter_dim', type=int, default=8, metavar='LENGTH', help='the dims of adapter layer')
 
-    parser.add_argument('--adapter_len', type=int, default=10, metavar='LENGTH',
-                        help='the adapter length')
+    # parser.add_argument('--adapter_len', type=int, default=10, metavar='LENGTH',
+    #                     help='the adapter length')
     parser.add_argument('--hidden_proj', type=int, default=128, metavar='LENGTH',
-                        help='the adapter length')
+                        help='the visual adapter dim')
 
     parser.add_argument('--temperature', type=float, default=10., metavar='LENGTH',
                         help='the temperature of router')
 
     parser.add_argument('--n_prompt', type=int, default=10, metavar='LENGTH',
-                        help='the prompt length')
-    parser.add_argument('--adapter_scale', type=float, default=1., metavar='LENGTH', help='the dims of adapter layer')
+                        help='the length of visual features')
+    parser.add_argument('--adapter_scale', type=float, default=1., metavar='LENGTH', help='the scales of adapter layer')
     parser.add_argument('--drop_path', type=float, default=0., metavar='LENGTH', help='drop path')
 
     parser.add_argument('--max_seq_len', type=int, default=512, metavar='LENGTH',
@@ -74,6 +77,8 @@ def get_args_parser():
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0')
 
+    parser.add_argument('--gradient_checkpointing', action='store_true',
+                        help='saving memory costs via gradient_checkpointing')
     parser.add_argument('--warmup_epochs', type=float, default=40, metavar='N',
                         help='epochs to warmup LR')
 
@@ -90,9 +95,6 @@ def get_args_parser():
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--resume', default='',
                         help='resume from checkpoint')
-
-    parser.add_argument('--gradient_checkpointing', action='store_true',
-                        help='saving memory costs via gradient_checkpointing')
 
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
@@ -124,8 +126,6 @@ def get_args_parser():
     parser.add_argument('--caption_file', type=str, default='../data/captions.json')
     parser.add_argument('--data_root', type=str, default='../data')
     parser.add_argument('--use_caption', action='store_true', help='use image captions or not')
-   # parser.add_argument('--incremental_training', action='store_true', help='do incremental tuning')
-    parser.add_argument('--pretrain_path', type=str, default='', help='load the pre-trained adapter')
 
     parser.add_argument('--do_pretrain', action='store_true', help='pre-train on large scale vl instruction')
 

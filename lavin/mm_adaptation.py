@@ -1,8 +1,23 @@
+# coding=utf-8
+# Copyright 2023 Gen Luo. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 
 import json
 from lavin import ModelArgs, Tokenizer, Transformer
-from repadapter import set_RepAdapter,set_Clip_RepAdapter
+from lavin.mm_adapter import set_MMAdapter,set_Clip_Adapter
 
 from pathlib import Path
 
@@ -80,19 +95,18 @@ def LaVIN(args):
 
     checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(llama_model_path, model_name)
 
-    if   args.adapter_type=='repblock' or  args.adapter_type=='repattn':
-        args.adapter_layer = 0
+
     model_args: ModelArgs = ModelArgs(
-        max_seq_len=args.max_seq_len, max_batch_size=32,hidden_proj=args.hidden_proj, adapter_len=args.adapter_len, adapter_layer=args.adapter_layer,drop_path=args.drop_path, **params
+        max_seq_len=args.max_seq_len, max_batch_size=32,hidden_proj=args.hidden_proj,drop_path=args.drop_path, **params
     )
 
     model_args.vocab_size = tokenizer.n_words
     torch.set_default_tensor_type(torch.cuda.HalfTensor)
     llama = Transformer(model_args)
 
-    if   args.adapter_type=='repblock' or  args.adapter_type=='repattn':
-        set_RepAdapter(llama,args.adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
-        set_Clip_RepAdapter(llama.backbone.visual,args.visual_adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
+    if   args.adapter_type=='block' or  args.adapter_type=='attn':
+        set_MMAdapter(llama,args.adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
+        set_Clip_Adapter(llama.backbone.visual,args.visual_adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
 
 
     torch.set_default_tensor_type(torch.FloatTensor)
