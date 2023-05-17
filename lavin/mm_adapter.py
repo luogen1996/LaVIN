@@ -120,6 +120,8 @@ def forward_clip_full(self, x: torch.Tensor):
 
 def set_MMAdapter(model, method, dim=8, s=1, set_forward=True,t=10,gradient_checkpointing=False):
     if method == 'block':
+        # not support right now
+        assert NotImplementedError
         for _ in model.children():
             if type(_) == lavin.eval_model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
                 _.adapter_attn = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t).half()
