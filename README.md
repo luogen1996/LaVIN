@@ -35,7 +35,7 @@ conda activate lavin
 # install pytorch
 conda install pytorch cudatoolkit -c pytorch -y
 
-# install dependency and llama-adapter
+# install dependency and lavin
 pip install -r requirements.txt
 pip install -e .
 ```
