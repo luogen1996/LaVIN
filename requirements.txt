@@ -1,0 +1,7 @@
+torch
+fairscale
+fire
+sentencepiece
+transformers
+timm
+tensorboard

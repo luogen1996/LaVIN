@@ -53,10 +53,7 @@ class RepAdapter_Router(nn.Module):
 
 
 class RepAdapter(nn.Module):
-    """
-    Pytorch Implemention of RepAdapter for 1d tensor
-    copy from https://github.com/luogen1996/RepAdapter/blob/main/repadapter.py
-    """
+
 
     def __init__(
             self,
