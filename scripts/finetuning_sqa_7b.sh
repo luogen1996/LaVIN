@@ -1,10 +1,10 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -m torch.distributed.launch --nproc_per_node 4 train.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc_per_node 8 train.py \
     --llm_model 7B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
     --max_seq_len 512 \
     --batch_size 4 \
-    --accum_iter 2 \
+    --accum_iter 1 \
     --epochs 20 \
     --warmup_epochs 2 \
     --blr 9e-3 \

@@ -14,7 +14,7 @@ from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 from lavin.eval_model import ModelArgs, Transformer
 from lavin.tokenizer import Tokenizer
 from lavin.generator import LaVIN_Generator
-from lavin.mm_adapter import set_RepAdapter,set_Clip_RepAdapter
+from lavin.mm_adapter import set_MMAdapter,set_Clip_Adapter
 from util.base_prompt import build_prompt
 from dataclasses import dataclass
 import re
@@ -259,8 +259,8 @@ llm_model:str,
 
     torch.set_default_tensor_type(torch.cuda.HalfTensor)
     model = Transformer(model_args)
-    set_RepAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
-    set_Clip_RepAdapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
+    set_MMAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
+    set_Clip_Adapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
 
     torch.set_default_tensor_type(torch.FloatTensor)
     model.load_state_dict(checkpoint, strict=False)
