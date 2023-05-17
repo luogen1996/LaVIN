@@ -90,7 +90,7 @@ LaVIN supports both single- and multi-modal instruction inputs. Try your custom 
 ```
 python example.py --text describe the image --image_path ./assets/example.png
 ```
-This is a example for multimodal instruction. If you want to ask text-only instruction, you can
+If you want to ask text-only question, you can
 ```
 python example.py --text describe the image
 ```
