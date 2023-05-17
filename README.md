@@ -1,5 +1,4 @@
 ![](./assets/logo.png)
-# LaVIN
 
 ---
 
