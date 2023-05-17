@@ -14,7 +14,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 ---
 
 <div  align="center">    
-<img src="./assets/teaser.png" width="95%">
+<img src="./assets/teaser.gif" width="95%">
 </div>
 
 ## News 
