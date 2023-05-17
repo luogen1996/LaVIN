@@ -8,7 +8,7 @@ This repository contains the implementation of the following paper:
 > [Gen Luo](https://luogen1996.github.io)<sup>1</sup>, [Tianhe Ren](https://rentainhe.github.io)<sup>1</sup>, Yiyi Zhou<sup>12</sup>, Shengxin Chen<sup>1</sup>, [Xiaoshuai Sun](https://sites.google.com/view/xssun)<sup>12</sup>, [Rongrong Ji](https://mac.xmu.edu.cn/rrji/)<sup>12</sup><br>
 <sup>1</sup>Media Analytics and Computing Lab, Department of Artificial Intelligence, School of Informatics, Xiamen University  
 > <sup>2</sup>Institute of Artificial Intelligence, Xiamen University 
->
+
 In this work, we propose a novel and affordable solution for vision-language instruction tuning, namely Mixture-of-Modality Adaptation (MMA). 
 Particularly, MMA is an end-to-end optimization regime, which connects the image encoder  and LLM via lightweight adapters.   Meanwhile, we also   propose a novel routing algorithm in MMA, which can   help the model automatically shifts the  reasoning paths  for single- and multi-modal instructions.  Based on MMA, we develop a large vision-language instructed model called LaVIN, which demonstrates superior training efficiency and  better reasoning ability  than existing multimodal LLMs in various instruction-following tasks.
 ---
@@ -21,12 +21,10 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 - **`2023/05/17`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper]().
 
 ## Contents
-- [Setups](#data-download)
-- [Install](#install)
-- [LLaVA Weights](#llava-weights)
-- [Serving](#serving)
-- [Evaluation](#evaluation)
+- [Setup](#setup)
 - [Fine-tuning](#fine-tuning)
+- [Demo](#demo) 
+- [Model Zoo](#model-zoo)
 
 ## Setup
 ### Install Package 
@@ -44,7 +42,7 @@ pip install -e .
 ### Data Preparation
 - For ScienceQA, please prepare the dataset from the [official repo](https://github.com/lupantech/ScienceQA).
 - For Multimodal Chatbot, download the images in _train2014_ split from [MSCOCO](http://images.cocodataset.org/zips/train2014.zip), and obtain the prepared 52k text-only and 158k text-image instruction-following data from [here]().
-- Obtain the weights of LLaMA from this form (official) or Download [LLaMA-7B](https://huggingface.co/nyanko7/LLaMA-7B/tree/main) and [LLaMA-13B](https://huggingface.co/TheBloke/llama-13b) from HuggingFace (unofficial).
+- Obtain the weights of LLaMA from [this form](https://forms.gle/jk851eBVbX1m5TAv5)  (official) or Download [LLaMA-7B](https://huggingface.co/nyanko7/LLaMA-7B/tree/main) and [LLaMA-13B](https://huggingface.co/TheBloke/llama-13b) from HuggingFace (unofficial).
 After that, the file structure should look like:
 ```
 ../data
@@ -83,6 +81,27 @@ bash ./scripts/vl_instruction_tuning_13b.sh
 To train on fewer GPUs, you can reduce the number of gpus in the scripts and increase gradient accumulation via ```--accum_iter``` to guarantee the total batch size of 32. Setting  ```--gradient_checkpointing``` in the scripts will reduce the requirements of GPU memory.
 **Note that the performance may drop if the batch size per gpu is less than 4.** We are figuring out the reason.
 
+## Demo
+
+LaVIN supports both single- and multi-modal instruction inputs. Try your custom instructions in two ways:
+
+- **Generate LaVIN responses via the following script**
+```
+python example.py --text describe the image --image_path ./assets/example.png
+```
+This is a example for multimodal instruction. If you want to ask text-only instruction, you can
+```
+python example.py --text describe the image
+```
+We also provide some examples, you can run.
+```
+python example.py
+```
+- **Launch a gradio web server on your machine, then you can interact with LaVIN as you like.** 
+```
+python demo.py
+```
+**The code of demo is still under working, which will be released soon.**
 ## Model Zoo
 ### ScienceQA
 | Model     | Time | Memory | #Params |  Acc |          Weights | 
