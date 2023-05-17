@@ -105,11 +105,11 @@ python demo.py
 **The code of demo is still under working, which will be released soon.**
 ## Model Zoo
 ### ScienceQA
-| Model     | Time | Memory | #Params |  Acc |          Weights | 
-|-----------|--------------:|-------:|--------:|-----:|-----------------:|
-| LaVIN-7B  |     1.4 hours |  33.9G |    3.8M | 89.4 | [google drive]() |
-| LaVIN-13B |       2 hours |  55.9G |    5.4M | 90.5 | [google drive]() |
-| LaVIN-13B |       2 hours |  55.9G |    5.4M | 90.8 | [google drive]() |
+| Model     |      Time | Memory | #Params |  Acc |          Weights | 
+|-----------|----------:|-------:|--------:|-----:|-----------------:|
+| LaVIN-7B  | 1.4 hours |  33.9G |    3.8M | 89.4 | [google drive]() |
+| LaVIN-13B |   2 hours |  55.9G |    5.4M | 90.5 | [google drive]() |
+| LaVIN-13B |   4 hours |  55.9G |    5.4M | 90.8 | [google drive]() |
 
 ### Multimodal ChatBot
 | Model     |     Time | Memory | #Params | Acc |          Weights | 
