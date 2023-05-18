@@ -58,7 +58,11 @@ model=load(
     adapter_scale=1,
     hidden_proj=128,
     visual_adapter_type='router',
-    temperature=10.)
+    temperature=10.,
+    tokenizer_path='',
+    local_rank=0,
+    world_size=0
+)
 
 vis_processor = transforms.Compose([transforms.Resize((224, 224), interpolation=Image.BICUBIC),transforms.ToTensor(), transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)])
 chat = Chat(model, vis_processor, device='cuda:{}'.format(args.gpu_id))
