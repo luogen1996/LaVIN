@@ -5,7 +5,7 @@
 This repository contains the implementation of the following paper:
 > **Cheap and Quick: Efficient Vision-Language Instruction Tuning for Large Language Models** 
 > [[Project Page]]() [[Paper]](https://arxiv.org/abs/2304.04269)  <br>
-> [Gen Luo](https://luogen1996.github.io)<sup>1</sup>, [Tianhe Ren](https://rentainhe.github.io)<sup>1</sup>, Yiyi Zhou<sup>12</sup>, Shengxin Chen<sup>1</sup>, [Xiaoshuai Sun](https://sites.google.com/view/xssun)<sup>12</sup>, [Rongrong Ji](https://mac.xmu.edu.cn/rrji/)<sup>12</sup><br>
+> [Gen Luo](https://luogen1996.github.io)<sup>1</sup>,  Yiyi Zhou<sup>12</sup>, [Tianhe Ren](https://rentainhe.github.io)<sup>1</sup>, Shengxin Chen<sup>1</sup>, [Xiaoshuai Sun](https://sites.google.com/view/xssun)<sup>12</sup>, [Rongrong Ji](https://mac.xmu.edu.cn/rrji/)<sup>12</sup><br>
 <sup>1</sup>Media Analytics and Computing Lab, Department of Artificial Intelligence, School of Informatics, Xiamen University  
 > <sup>2</sup>Institute of Artificial Intelligence, Xiamen University 
 
