@@ -49,8 +49,8 @@ args = parse_args()
 
 model=load(
     ckpt_dir='../data/weights/',
-    llm_model='7B',
-    adapter_path='./LaVIN-7B/checkpoint-19.pth',
+    llm_model='13B',
+    adapter_path='./15-eph-pretrain.pth',
     max_seq_len=512,
     max_batch_size=32,
     adapter_type='attn',
