@@ -8,6 +8,7 @@ from transformers import StoppingCriteria, StoppingCriteriaList
 import dataclasses
 from enum import auto, Enum
 from typing import List, Tuple, Any
+import re
 
 
 
@@ -133,7 +134,7 @@ class Chat:
         conv.append_message(conv.roles[1], None)
         prompt, indicator,  img = self.get_context_emb(conv, img_list)
 
-        current_max_len = prompt.shape[1] + max_new_tokens+n_feats
+        current_max_len = len(prompt) + max_new_tokens+n_feats
         if current_max_len - max_length > 0:
             print('Warning: The number of tokens in current conversation exceeds the max length. '
                   'The model will not see the contexts outside the range.')
@@ -150,7 +151,10 @@ class Chat:
             temperature = 0.8,
             top_p = 0.95,
         )
-        output_text = outputs[0,len(prompt):]
+        # print(len(prompt))
+
+        pattern = re.compile(r'Responese:.*')
+        output_text = pattern.findall(outputs[0])[0].replace('Responese:', '')
         # if output_token[0] == 0:  # the model might output a unknow token <unk> at the beginning. remove it
         #     output_token = output_token[1:]
         # if output_token[0] == 1:  # some users find that there is a start token <s> at the beginning. remove it
@@ -173,8 +177,8 @@ class Chat:
                 image = image.unsqueeze(0)
             image = image.to(self.device)
 
-        image_emb, _ = self.model.encode_img(image)
-        img_list.append(image_emb)
+        # image_emb, _ = self.lavin.backbone.encode_img(image)
+        img_list.append(image)
         conv.append_message(conv.roles[0], "<Img><ImageHere></Img>")
         msg = "Received."
         # self.conv.append_message(self.conv.roles[1], msg)
@@ -184,7 +188,7 @@ class Chat:
         prompt = conv.get_prompt()
         if '<Img><ImageHere></Img>' in prompt:
             indicator=1
-            prompt=prompt.repalce('<Img><ImageHere></Img>','')
+            prompt=prompt.replace('<Img><ImageHere></Img>','')
         else:
             indicator=0
         assert len(img_list) <=  1, "Unmatched numbers of image placeholders and images."

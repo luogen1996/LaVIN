@@ -14,7 +14,8 @@ from conversation.conversation import Chat, CONV_VISION
 from torchvision.transforms import transforms
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from eval import load
-
+from fairscale.nn.model_parallel.initialize import initialize_model_parallel
+from typing import Tuple
 def parse_args():
     parser = argparse.ArgumentParser(description="Demo")
     parser.add_argument("--gpu-id", type=int, default=0, help="specify the gpu to load the model.")
@@ -28,6 +29,17 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+def setup_model_parallel() -> Tuple[int, int]:
+    local_rank = int(os.environ.get("LOCAL_RANK", -1))
+    world_size = int(os.environ.get("WORLD_SIZE", -1))
+
+    torch.distributed.init_process_group("nccl")
+    initialize_model_parallel(world_size)
+    torch.cuda.set_device(local_rank)
+
+    # seed must be the same in all processes
+    torch.manual_seed(1)
+    return local_rank, world_size
 
 def setup_seeds(config):
     seed = config.run_cfg.seed + get_rank()
@@ -47,12 +59,14 @@ def setup_seeds(config):
 print('Initializing Chat')
 args = parse_args()
 
-model=load(
+
+local_rank, world_size = setup_model_parallel()
+lavin=load(
     ckpt_dir='../data/weights/',
     llm_model='13B',
     adapter_path='./15-eph-pretrain.pth',
     max_seq_len=512,
-    max_batch_size=32,
+    max_batch_size=4,
     adapter_type='attn',
     adapter_dim=8,
     adapter_scale=1,
@@ -60,12 +74,12 @@ model=load(
     visual_adapter_type='router',
     temperature=10.,
     tokenizer_path='',
-    local_rank=0,
-    world_size=0
+    local_rank=local_rank,
+    world_size=world_size
 )
 
 vis_processor = transforms.Compose([transforms.Resize((224, 224), interpolation=Image.BICUBIC),transforms.ToTensor(), transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)])
-chat = Chat(model, vis_processor, device='cuda:{}'.format(args.gpu_id))
+chat = Chat(lavin, vis_processor, device=torch.device('cuda'))
 print('Initialization Finished')
 
 
@@ -112,8 +126,8 @@ def gradio_answer(chatbot, chat_state, img_list, num_beams, temperature):
     return chatbot, chat_state, img_list
 
 
-title = """<h1 align="center">Demo of MiniGPT-4</h1>"""
-description = """<h3>This is the demo of MiniGPT-4. Upload your images and start chatting!</h3>"""
+title = """<h1 align="center">Demo of LaVIN</h1>"""
+description = """<h3>This is the demo of LaVIN. Upload your images and start chatting!</h3>"""
 article = """<p><a href='https://minigpt-4.github.io'><img src='https://img.shields.io/badge/Project-Page-Green'></a></p><p><a href='https://github.com/Vision-CAIR/MiniGPT-4'><img src='https://img.shields.io/badge/Github-Code-blue'></a></p><p><a href='https://raw.githubusercontent.com/Vision-CAIR/MiniGPT-4/main/MiniGPT_4.pdf'><img src='https://img.shields.io/badge/Paper-PDF-red'></a></p>
 """
 
@@ -151,7 +165,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             chat_state = gr.State()
             img_list = gr.State()
-            chatbot = gr.Chatbot(label='MiniGPT-4')
+            chatbot = gr.Chatbot(label='LaVIN-13B')
             text_input = gr.Textbox(label='User', placeholder='Please upload your image first', interactive=False)
 
     upload_button.click(upload_img, [image, text_input, chat_state],
@@ -163,4 +177,4 @@ with gr.Blocks() as demo:
     clear.click(gradio_reset, [chat_state, img_list], [chatbot, image, text_input, upload_button, chat_state, img_list],
                 queue=False)
 
-demo.launch(share=True, enable_queue=True)
+demo.launch(share=True, enable_queue=True,server_name='10.24.82.233')
