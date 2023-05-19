@@ -144,29 +144,31 @@ with gr.Blocks() as demo:
             upload_button = gr.Button(value="Upload & Start Chat", interactive=True, variant="primary")
             clear = gr.Button("Restart")
 
-            num_beams = gr.Slider(
-                minimum=1,
-                maximum=10,
-                value=1,
-                step=1,
-                interactive=True,
-                label="beam search numbers)",
-            )
+            num_beams = 0
+            #     gr.Slider(
+            #     minimum=1,
+            #     maximum=10,
+            #     value=1,
+            #     step=1,
+            #     interactive=True,
+            #     label="beam search numbers)",
+            # )
 
-            temperature = gr.Slider(
-                minimum=0.1,
-                maximum=2.0,
-                value=1.0,
-                step=0.1,
-                interactive=True,
-                label="Temperature",
-            )
+            temperature = 0.1
+            #     gr.Slider(
+            #     minimum=0.1,
+            #     maximum=2.0,
+            #     value=1.0,
+            #     step=0.1,
+            #     interactive=True,
+            #     label="Temperature",
+            # )
 
         with gr.Column():
             chat_state = gr.State()
             img_list = gr.State()
             chatbot = gr.Chatbot(label='LaVIN-13B')
-            text_input = gr.Textbox(label='User', placeholder='Please upload your image first', interactive=False)
+            text_input = gr.Textbox(label='User', placeholder='Type and press Enter', interactive=True)
 
     upload_button.click(upload_img, [image, text_input, chat_state],
                         [image, text_input, upload_button, chat_state, img_list])
