@@ -142,6 +142,8 @@ class Chat:
 
         prompt = prompt[begin_idx:]
 
+        # print(prompt)
+
         outputs = self.lavin.generate(
             prompts= [prompt],
             images= img,
@@ -152,9 +154,12 @@ class Chat:
             top_p = 0.95,
         )
         # print(len(prompt))
+        # print()
+        # print(outputs)
 
-        pattern = re.compile(r'Responese:.*')
-        output_text = pattern.findall(outputs[0])[0].replace('Responese:', '')
+        # pattern = re.compile(r'Responese:.*')
+        output_text = outputs[0].split('Responese:')[-1].strip()
+        # pattern.findall(outputs[0])[-1].replace('Responese:', '')
         # if output_token[0] == 0:  # the model might output a unknow token <unk> at the beginning. remove it
         #     output_token = output_token[1:]
         # if output_token[0] == 1:  # some users find that there is a start token <s> at the beginning. remove it
@@ -186,11 +191,12 @@ class Chat:
 
     def get_context_emb(self, conv, img_list):
         prompt = conv.get_prompt()
+        # print(prompt)
         if '<Img><ImageHere></Img>' in prompt:
             indicator=1
             prompt=prompt.replace('<Img><ImageHere></Img>','')
         else:
             indicator=0
-        assert len(img_list) <=  1, "Unmatched numbers of image placeholders and images."
+        assert img_list is None or len(img_list) <=  1
 
         return prompt, indicator,  img_list[0] if indicator==1 else torch.Tensor(torch.zeros(1,3, 224, 224).float())

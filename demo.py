@@ -92,8 +92,8 @@ def gradio_reset(chat_state, img_list):
         chat_state.messages = []
     if img_list is not None:
         img_list = []
-    return None, gr.update(value=None, interactive=True), gr.update(placeholder='Please upload your image first',
-                                                                    interactive=False), gr.update(
+    return None, gr.update(value=None, interactive=True), gr.update(placeholder='Type and press Enter',
+                                                                    interactive=True), gr.update(
         value="Upload & Start Chat", interactive=True), chat_state, img_list
 
 
@@ -110,6 +110,8 @@ def upload_img(gr_img, text_input, chat_state):
 def gradio_ask(user_message, chatbot, chat_state):
     if len(user_message) == 0:
         return gr.update(interactive=True, placeholder='Input should not be empty!'), chatbot, chat_state
+    if chat_state is None:
+        chat_state=CONV_VISION.copy()
     chat.ask(user_message, chat_state)
     chatbot = chatbot + [[user_message, None]]
     return '', chatbot, chat_state
@@ -144,25 +146,23 @@ with gr.Blocks() as demo:
             upload_button = gr.Button(value="Upload & Start Chat", interactive=True, variant="primary")
             clear = gr.Button("Restart")
 
-            num_beams = 0
-            #     gr.Slider(
-            #     minimum=1,
-            #     maximum=10,
-            #     value=1,
-            #     step=1,
-            #     interactive=True,
-            #     label="beam search numbers)",
-            # )
+            num_beams = gr.Slider(
+                minimum=1,
+                maximum=10,
+                value=1,
+                step=1,
+                interactive=True,
+                label="beam search numbers)",
+            )
 
-            temperature = 0.1
-            #     gr.Slider(
-            #     minimum=0.1,
-            #     maximum=2.0,
-            #     value=1.0,
-            #     step=0.1,
-            #     interactive=True,
-            #     label="Temperature",
-            # )
+            temperature = gr.Slider(
+                minimum=0.1,
+                maximum=2.0,
+                value=1.0,
+                step=0.1,
+                interactive=True,
+                label="Temperature",
+            )
 
         with gr.Column():
             chat_state = gr.State()
