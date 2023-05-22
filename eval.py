@@ -30,6 +30,7 @@ from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from pathlib import Path
 import fairscale.nn.model_parallel.initialize as fs_init
 import torch.distributed as dist
+from util.apply_delta import apply_model_delta_online
 
 warnings.filterwarnings('ignore')
 
@@ -243,7 +244,8 @@ llm_model:str,
     adapter_scale:float,
     hidden_proj:int,
     visual_adapter_type: str,
-    temperature: float
+    temperature: float,
+use_vicuna: bool
 ) -> LaVIN_Generator:
     start_time = time.time()
     checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(ckpt_dir, llm_model)
@@ -265,6 +267,8 @@ llm_model:str,
     torch.set_default_tensor_type(torch.FloatTensor)
     model.load_state_dict(checkpoint, strict=False)
 
+    if use_vicuna:
+        apply_model_delta_online(model,'../data/weights/vicuna_'+llm_model)
 
     state_dict={}
     for key in adapter_checkpoint['model']:
@@ -306,7 +310,8 @@ def main(
     n_prompt=10,
     hidden_proj=128,
     visual_adapter_type='normal',
-    temperature=10.
+    temperature=10.,
+    use_vicuna=False
 ):
     print(max_batch_size,max_seq_len)
     print('use caption: ',use_caption)
@@ -317,7 +322,7 @@ def main(
     generator = load(
         ckpt_dir,llm_model, tokenizer_path, adapter_path, local_rank, world_size, max_seq_len, max_batch_size,
         adapter_type,adapter_dim,adapter_scale,hidden_proj,visual_adapter_type,
-    temperature)
+    temperature,use_vicuna)
 
     print('split: ', split)
     problems = json.load(open(os.path.join(data_root, 'problems.json')))

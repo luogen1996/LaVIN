@@ -35,6 +35,8 @@ def get_args_parser():
     parser.add_argument('--llm_model', default='7B', type=str, metavar='MODEL',
                         help='Name of llm model to train')
 
+    parser.add_argument('--use_vicuna',  action='store_true',   help='use vicuna weights')
+
     #block is not supported now.
     parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
                         help='the insert position  of adapter layer')

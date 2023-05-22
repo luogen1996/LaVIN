@@ -6,6 +6,7 @@ from lavin import ModelArgs, Tokenizer, Transformer
 from lavin.mm_adapter import set_MMAdapter,set_Clip_Adapter
 
 from pathlib import Path
+from util.apply_delta import apply_model_delta_online
 
 
 
@@ -97,6 +98,10 @@ def LaVIN(args):
 
     torch.set_default_tensor_type(torch.FloatTensor)
     llama.load_state_dict(checkpoint, strict=False)
+
+    if args.use_vicuna:
+        apply_model_delta_online(llama,'../data/weights/vicuna_'+args.llm_model)
+
 
     learnable_keys=['adapter']
     total=0.

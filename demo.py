@@ -75,7 +75,8 @@ lavin=load(
     temperature=10.,
     tokenizer_path='',
     local_rank=local_rank,
-    world_size=world_size
+    world_size=world_size,
+    use_vicuna=False
 )
 
 vis_processor = transforms.Compose([transforms.Resize((224, 224), interpolation=Image.BICUBIC),transforms.ToTensor(), transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)])
