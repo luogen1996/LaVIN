@@ -70,6 +70,8 @@ After that, the file structure should look like:
 ## Fine-tuning
 ### ScienceQA
 Reproduce the performance of LaVIN-7B on ScienceQA (~1.4 hours on 8x A100 (80G)).
+For 7B model, we fine-tune it on 2x A100.
+
 
 LLaMA weights:
 ```bash
@@ -83,6 +85,7 @@ bash ./scripts/finetuning_sqa_vicuna_7b.sh
 
 
 Reproduce the performance of LaVIN-13B on ScienceQA (~2 hours on 8x A100 (80G)).
+For 13B model, we fine-tune it on 8x A100.
 
 LLaMA weights:
 ```bash
@@ -157,4 +160,4 @@ If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapte
 
 
 ## Acknowledgement
-This repo borrows some data and codes from [LLaMA](https://github.com/facebookresearch/llama), [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca),  [LLaVA](https://github.com/haotian-liu/LLaVA) and [LLaMA-Adapter](https://github.com/ZrrSkywalker/LLaMA-Adapter/). Thanks for their great works.
+This repo borrows some data and codes from [LLaMA](https://github.com/facebookresearch/llama), [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca),  [LLaVA](https://github.com/haotian-liu/LLaVA), [MiniGPT-4](https://github.com/Vision-CAIR/MiniGPT-4) and [LLaMA-Adapter](https://github.com/ZrrSkywalker/LLaMA-Adapter/). Thanks for their great works.
