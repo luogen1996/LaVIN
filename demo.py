@@ -18,7 +18,16 @@ from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 from typing import Tuple
 def parse_args():
     parser = argparse.ArgumentParser(description="Demo")
-    parser.add_argument("--gpu-id", type=int, default=0, help="specify the gpu to load the model.")
+    parser.add_argument("--server_name", type=str, default="127.0.0.1", help="server name", required=True)
+    parser.add_argument("--ckpt_dir", type=str, default="../data/weights/", help="dir of pre-trained weights.")
+    parser.add_argument("--llm_model", type=str, default="13B", help="the type of llm.")
+    parser.add_argument("--max_seq_len", type=int, default=512, help="decoder length")
+    parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
+                        help='the insert position  of adapter layer')
+    parser.add_argument('--adapter_path', type=str, default='./15-eph-pretrain.pth',  help='path of pre-trained adapter')
+    parser.add_argument('--temperature', type=float, default=10., metavar='LENGTH',
+                        help='the temperature of router')
+    parser.add_argument('--use_vicuna',  action='store_true',   help='use vicuna weights')
     parser.add_argument(
         "--options",
         nargs="+",
@@ -62,9 +71,9 @@ args = parse_args()
 
 local_rank, world_size = setup_model_parallel()
 lavin=load(
-    ckpt_dir='../data/weights/',
-    llm_model='13B',
-    adapter_path='./15-eph-pretrain.pth',
+    ckpt_dir=args.ckpt_dir,
+    llm_model=args.llm_model,
+    adapter_path=args.adapter_path,
     max_seq_len=512,
     max_batch_size=4,
     adapter_type='attn',
@@ -72,11 +81,11 @@ lavin=load(
     adapter_scale=1,
     hidden_proj=128,
     visual_adapter_type='router',
-    temperature=10.,
+    temperature=args.temperature,
     tokenizer_path='',
     local_rank=local_rank,
     world_size=world_size,
-    use_vicuna=False
+    use_vicuna=args.use_vicuna
 )
 
 vis_processor = transforms.Compose([transforms.Resize((224, 224), interpolation=Image.BICUBIC),transforms.ToTensor(), transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)])
@@ -131,15 +140,12 @@ def gradio_answer(chatbot, chat_state, img_list, num_beams, temperature):
 
 title = """<h1 align="center">Demo of LaVIN</h1>"""
 description = """<h3>This is the demo of LaVIN. Upload your images and start chatting!</h3>"""
-article = """<p><a href='https://minigpt-4.github.io'><img src='https://img.shields.io/badge/Project-Page-Green'></a></p><p><a href='https://github.com/Vision-CAIR/MiniGPT-4'><img src='https://img.shields.io/badge/Github-Code-blue'></a></p><p><a href='https://raw.githubusercontent.com/Vision-CAIR/MiniGPT-4/main/MiniGPT_4.pdf'><img src='https://img.shields.io/badge/Paper-PDF-red'></a></p>
-"""
 
-# TODO show examples below
+
 
 with gr.Blocks() as demo:
     gr.Markdown(title)
     gr.Markdown(description)
-    gr.Markdown(article)
 
     with gr.Row():
         with gr.Column(scale=0.5):
@@ -180,4 +186,4 @@ with gr.Blocks() as demo:
     clear.click(gradio_reset, [chat_state, img_list], [chatbot, image, text_input, upload_button, chat_state, img_list],
                 queue=False)
 
-demo.launch(share=True, enable_queue=True,server_name='10.24.82.233')
+demo.launch(share=True, enable_queue=True,server_name=args.server_name)

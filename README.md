@@ -117,7 +117,7 @@ LaVIN supports both single- and multi-modal instruction inputs. Try your custom 
 
 - **Launch a gradio web server on your machine, then you can interact with LaVIN as you like.** 
 ```
-python demo.py
+torchrun --nproc_per_node 1  python demo.py --server_name 127.0.0.1
 ```
 
 ## Model Zoo
@@ -130,10 +130,11 @@ python demo.py
 | LaVIN-13B | LLaMA |   4 hours |  55.9G |    5.4M | 90.8 | [google drive]() |
 
 ### Multimodal ChatBot
-| Model     |     Time | Memory | #Params | Acc |          Weights | 
-|-----------|---------:|-------:|--------:|----:|-----------------:|
-| LaVIN-13B | 25 hours |  55.9G |    5.4M |   - |                - |
-| LaVIN-13B | 75 hours |  55.9G |    5.4M |   - | [google drive]() |
+| Model     |Weights    |      Time | Memory | #Params | Acc |          Weights | 
+|-----------|----------:|---------:|-------:|--------:|----:|-----------------:|
+| LaVIN-13B | LLaMA | 25 hours |  55.9G |    5.4M |   - |                - |
+| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | -|
+| LaVIN-13B | Vicuna | 75 hours |  55.9G |    5.4M |   - | [google drive]() |
 
 ## Examples
 <div  align="center">    
