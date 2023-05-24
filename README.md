@@ -44,6 +44,7 @@ pip install -e .
 - For ScienceQA, please prepare the dataset from the [official repo](https://github.com/lupantech/ScienceQA).
 - For Multimodal Chatbot, download the images in _train2014_ split from [MSCOCO](http://images.cocodataset.org/zips/train2014.zip), and obtain the prepared 52k text-only and 158k text-image instruction-following data from [here](https://drive.google.com/file/d/1gORDPruqwXbgy6NYmhpDXO7t089yzsg3/view?usp=share_link).
 - Obtain the weights of LLaMA from [this form](https://forms.gle/jk851eBVbX1m5TAv5)  (official) or Download [LLaMA-7B](https://huggingface.co/nyanko7/LLaMA-7B/tree/main) and [LLaMA-13B](https://huggingface.co/TheBloke/llama-13b) from HuggingFace (unofficial).
+- If you want to use Vicuna weights to initialize the model, please download from [here](https://huggingface.co/lmsys).
 After that, the file structure should look like:
 ```
 ../data
@@ -62,60 +63,78 @@ After that, the file structure should look like:
             |-- params.json
             |-- consolidated.00.pth
         |--13B
+        |--vicuna_7B
+        |--vicuna_13B
         ......
 ```
 ## Fine-tuning
 ### ScienceQA
 Reproduce the performance of LaVIN-7B on ScienceQA (~1.4 hours on 8x A100 (80G)).
+For 7B model, we fine-tune it on 2x A100.
+
+
+LLaMA weights:
 ```bash
 bash ./scripts/finetuning_sqa_7b.sh
 ```
+
+Vicuna weights:
+```bash
+bash ./scripts/finetuning_sqa_vicuna_7b.sh
+```
+
+
 Reproduce the performance of LaVIN-13B on ScienceQA (~2 hours on 8x A100 (80G)).
+For 13B model, we fine-tune it on 8x A100.
+
+LLaMA weights:
 ```bash
 bash ./scripts/finetuning_sqa_13b.sh
 ```
+
+Vicuna weights:
+```bash
+bash ./scripts/finetuning_sqa_vicuna_13b.sh
+```
 ### MultiModal ChatBot
 Fine-tune LaVIN-13B on 210k instruction-following data (~ 75 hours with 15 epochs and ~25 hours with 5 epochs on 8x A100 (80G) )
+
+LLaMA weights:
 ```bash
 bash ./scripts/vl_instruction_tuning_13b.sh
+```
+
+Vicuna weights:
+```bash
+bash ./scripts/vl_instruction_tuning_vicuna_13b.sh
 ```
 To train on fewer GPUs, you can reduce the number of gpus in the scripts and increase gradient accumulation via ```--accum_iter``` to guarantee the total batch size of 32. Setting  ```--gradient_checkpointing``` in the scripts will reduce the requirements of GPU memory.
 **Note that the performance may drop if the batch size per gpu is less than 4.** We are figuring out the reason.
 
 ## Demo
 
-LaVIN supports both single- and multi-modal instruction inputs. Try your custom instructions in two ways:
+LaVIN supports both single- and multi-modal instruction inputs. Try your custom instructions in our demo:
 
-- **Generate LaVIN responses via the following script**
-```
-python example.py --text describe the image --image_path ./assets/example.png
-```
-If you want to ask text-only question, you can
-```
-python example.py --text describe the image
-```
-We also provide some examples, you can run.
-```
-python example.py
-```
 - **Launch a gradio web server on your machine, then you can interact with LaVIN as you like.** 
 ```
-python demo.py
+torchrun --nproc_per_node 1  python demo.py --server_name 127.0.0.1
 ```
-**The code of demo is still under working, which will be released soon.**
+
 ## Model Zoo
 ### ScienceQA
-| Model     |      Time | Memory | #Params |  Acc |          Weights | 
-|-----------|----------:|-------:|--------:|-----:|-----------------:|
-| LaVIN-7B  | 1.4 hours |  33.9G |    3.8M | 89.4 | [google drive]() |
-| LaVIN-13B |   2 hours |  55.9G |    5.4M | 90.5 | [google drive]() |
-| LaVIN-13B |   4 hours |  55.9G |    5.4M | 90.8 | [google drive]() |
+| Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights | 
+|-----------|----------:|----------:|-------:|--------:|-----:|-----------------:|
+| LaVIN-7B  | LLaMA | 1.4 hours |  33.9G |    3.8M | 89.37 | [google drive](https://drive.google.com/file/d/10X2qCBYrLH1grZOHwHRMXLUoz-S6MSgV/view?usp=share_link) |
+| LaVIN-7B  | Vicuna | 1.4 hours |  33.9G |    3.8M | 89.41 | [google drive](https://drive.google.com/file/d/1nuMxeiWlnJKxDybCshg8pVGSvLc5dZy8/view?usp=share_link) |
+| LaVIN-13B | LLaMA |   2 hours |  55.9G |    5.4M | 90.54 | [google drive](https://drive.google.com/file/d/1LkKUY54spZkkeXrR7BDmU-xmK9YadcKM/view?usp=share_link) |
+| LaVIN-13B | LLaMA |   4 hours |  55.9G |    5.4M | 90.8 | - |
 
 ### Multimodal ChatBot
-| Model     |     Time | Memory | #Params | Acc |          Weights | 
-|-----------|---------:|-------:|--------:|----:|-----------------:|
-| LaVIN-13B | 25 hours |  55.9G |    5.4M |   - |                - |
-| LaVIN-13B | 75 hours |  55.9G |    5.4M |   - | [google drive]() |
+| Model     |Weights    |      Time | Memory | #Params | Acc |          Weights | 
+|-----------|----------:|---------:|-------:|--------:|----:|-----------------:|
+| LaVIN-13B | LLaMA | 25 hours |  55.9G |    5.4M |   - |                - |
+| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | -|
+| LaVIN-13B | Vicuna | 75 hours |  55.9G |    5.4M |   - | [google drive]() |
 
 ## Examples
 <div  align="center">    
@@ -142,4 +161,4 @@ If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapte
 
 
 ## Acknowledgement
-This repo borrows some data and codes from [LLaMA](https://github.com/facebookresearch/llama), [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca),  [LLaVA](https://github.com/haotian-liu/LLaVA) and [LLaMA-Adapter](https://github.com/ZrrSkywalker/LLaMA-Adapter/). Thanks for their great works.
+This repo borrows some data and codes from [LLaMA](https://github.com/facebookresearch/llama), [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca),  [LLaVA](https://github.com/haotian-liu/LLaVA), [MiniGPT-4](https://github.com/Vision-CAIR/MiniGPT-4) and [LLaMA-Adapter](https://github.com/ZrrSkywalker/LLaMA-Adapter/). Thanks for their great works.

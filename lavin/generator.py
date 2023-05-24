@@ -43,7 +43,7 @@ class LaVIN_Generator:
         bsz = len(prompts)
         params = self.model.params
         assert bsz <= params.max_batch_size, (bsz, params.max_batch_size)
-
+        self.model.eval()
 
         prefix_img_token = self.tokenizer.encode("Image: ", bos=True, eos=False)
         non_prefix_img_token= self.tokenizer.encode("Image: N/A", bos=True, eos=False)

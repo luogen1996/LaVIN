@@ -9,21 +9,22 @@ CUDA_VISIBLE_DEVICES=2,3 python3 -m torch.distributed.launch --nproc_per_node 2 
     --warmup_epochs 2 \
     --blr 9e-3 \
     --weight_decay 0.02 \
-    --output_dir ./LaVIN-7B/\
+    --output_dir ./LaVIN-Vicuna-7B/\
     --adapter_type attn\
     --adapter_dim 8\
     --adapter_scale 1\
     --n_prompt 6 \
     --prompt_format QCM-ALE \
     --temperature 10.\
-    --visual_adapter_type router
+    --visual_adapter_type router\
+    --use_vicuna
 CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
     --ckpt_dir ../data/weights/ \
     --llm_model 7B\
     --tokenizer_path ../data/weights/tokenizer.model \
     --data_root ../data \
     --caption_file ../data/captions.json \
-    --adapter_path ./LaVIN-7B/checkpoint-19.pth \
+    --adapter_path ./LaVIN-Vicuna-7B/checkpoint-19.pth \
     --adapter_type attn \
     --adapter_dim 8 \
     --adapter_scale 1 \
@@ -33,4 +34,5 @@ CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
     --split test \
     --n_prompt 6 \
     --temperature 10.\
-    --visual_adapter_type router
+    --visual_adapter_type router\
+    --use_vicuna=True

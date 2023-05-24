@@ -48,7 +48,7 @@ for i,item in enumerate(gpt4_data):
 for i,item in enumerate(gpt4_data_2):
     for j in range(0,len(item['conversations']),2):
         data={}
-        data['instruction'] = 'Question: '+item['conversations'][j]['value'].replace('<image>\n','').replace('\n<image>','')+'\n'+ \
+        data['instruction'] = 'Instruction: '+item['conversations'][j]['value'].replace('<image>\n','').replace('\n<image>','')+'\n'+ \
                               'Response: '
         data['instruction'] = data['instruction'].replace("  ", " ").strip()
         data['answer'] = item['conversations'][j+1]['value']
@@ -57,6 +57,7 @@ for i,item in enumerate(gpt4_data_2):
         data['options'] = None
         data['qid']='gpt4_2_'+str(i)+'_'+str(j)
         all_data.append(data)
+
 
 
 full_data={}
