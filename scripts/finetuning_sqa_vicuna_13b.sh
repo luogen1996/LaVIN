@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc_per_node 8 train.py \
+torchrun --nproc_per_node 8 --master_port 12345 --nproc_per_node 8 train.py \
     --llm_model 13B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc
     --warmup_epochs 2 \
     --blr 9e-3 \
     --weight_decay 0.02 \
-    --output_dir ./LaVIN-13B/\
+    --output_dir ./LaVIN-Vicuna-13B/\
     --adapter_type attn\
     --adapter_dim 8\
     --adapter_scale 1\
@@ -18,13 +18,14 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc
     --temperature 5.\
     --visual_adapter_type router \
     --use_vicuna
-CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
+
+torchrun --nproc_per_node 1  eval.py \
     --ckpt_dir ../data/weights/ \
     --llm_model 13B\
     --tokenizer_path ../data/weights/tokenizer.model \
     --data_root ../data \
     --caption_file ../data/captions.json \
-    --adapter_path ./LaVIN-13B/checkpoint-19.pth \
+    --adapter_path ./LaVIN-Vicuna-13B/checkpoint-19.pth \
     --adapter_type attn \
     --adapter_dim 8 \
     --adapter_scale 1 \

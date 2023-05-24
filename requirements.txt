@@ -5,3 +5,4 @@ sentencepiece
 transformers
 timm
 tensorboard
+ftfy

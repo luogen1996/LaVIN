@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc_per_node 8 train.py \
+torchrun --nproc_per_node 8 --master_port 12345 train.py \
     --llm_model 13B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
@@ -17,7 +17,8 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -m torch.distributed.launch --nproc
     --prompt_format QCM-ALE \
     --temperature 5.\
     --visual_adapter_type router
-CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
+
+torchrun --nproc_per_node 1  eval.py \
     --ckpt_dir ../data/weights/ \
     --llm_model 13B\
     --tokenizer_path ../data/weights/tokenizer.model \

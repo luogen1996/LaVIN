@@ -30,11 +30,11 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 ## Setup
 ### Install Package 
 ```bash
-conda create -n lavin -y python=3.8
+conda create -n lavin python=3.8 -y
 conda activate lavin
 
 # install pytorch
-conda install pytorch cudatoolkit -c pytorch -y
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 -c pytorch
 
 # install dependency and lavin
 pip install -r requirements.txt
