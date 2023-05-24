@@ -133,8 +133,7 @@ torchrun --nproc_per_node 1  python demo.py --server_name 127.0.0.1
 | Model     |Weights    |      Time | Memory | #Params | Acc |          Weights | 
 |-----------|----------:|---------:|-------:|--------:|----:|-----------------:|
 | LaVIN-13B | LLaMA | 25 hours |  55.9G |    5.4M |   - |                - |
-| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | -|
-| LaVIN-13B | Vicuna | 75 hours |  55.9G |    5.4M |   - | [google drive]() |
+| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | coming soon| 
 
 ## Examples
 <div  align="center">    
