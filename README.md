@@ -151,12 +151,12 @@ If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapte
   year={2023}
 }
 
-@article{luo2023towards,
-  title={Towards Efficient Visual Adaption via Structural Re-parameterization},
-  author={Luo, Gen and Huang, Minglang and Zhou, Yiyi  and Sun, Xiaoshuai and Jiang, Guangnan and Wang, Zhiyu and Ji, Rongrong},
-  journal={arXiv preprint arXiv:2302.08106},
-  year={2023}
-}
+@article{luo2023cheap,
+ title={Cheap and Quick: Efficient Vision-Language Instruction Tuning for Large Language Models},
+ author={Luo, Gen and  Zhou, Yiyi and Ren, Tianhe and Chen, Shengxin abd Sun, Xiaoshuai and Ji, Rongrong},
+ journal={arXiv preprint arXiv:},
+ year={2023}
+  }
 ```
 
 
