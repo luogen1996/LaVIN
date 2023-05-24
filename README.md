@@ -46,26 +46,46 @@ pip install -e .
 - Obtain the weights of LLaMA from [this form](https://forms.gle/jk851eBVbX1m5TAv5)  (official) or Download [LLaMA-7B](https://huggingface.co/nyanko7/LLaMA-7B/tree/main) and [LLaMA-13B](https://huggingface.co/TheBloke/llama-13b) from HuggingFace (unofficial).
 - If you want to use Vicuna weights to initialize the model, please download from [here](https://huggingface.co/lmsys).
 After that, the file structure should look like:
-```
-../data
-|-- problem.json
-|-- pid_splits.json
-|-- captions.json
-|-- all_data.json
-|-- images
-    |-- train2014
-    |-- train
-    |-- val
-    |-- test
-|-- weights
-    |-- tokenizer.model
-        |--7B
-            |-- params.json
-            |-- consolidated.00.pth
-        |--13B
-        |--vicuna_7B
-        |--vicuna_13B
-        ......
+
+```bash
+LaVIN/
+  |-- lavin
+  |-- scripts
+  |-- train.py
+  |-- eval.py
+  ......
+data/
+  |-- problem.json
+  |-- pid_splits.json
+  |-- captions.json
+  |-- all_data.json
+  |-- images
+      |-- train2014      # MSCOCO 2014
+      |-- val2014        # MSCOCO 2014
+      |-- train          # ScienceQA train image
+      |-- val            # ScienceQA val image
+      |-- test           # ScienceQA test image
+  |-- weights
+      |-- tokenizer.model
+          |--7B
+              |-- params.json
+              |-- consolidated.00.pth
+          |--13B
+              |-- params.json
+              |-- consolidated.00.pth
+              |-- consolidated.01.pth
+          |--vicuna_7B
+          |--vicuna_13B
+              |-- config.json
+              |-- generation_config.json
+              |-- pytorch_model.bin.index.json
+              |-- special_tokens_map.json
+              |-- tokenizer_config.json
+              |-- tokenizer.model
+              |-- pytorch_model-00001-of-00003.bin
+              |-- pytorch_model-00002-of-00003.bin
+              |-- pytorch_model-00003-of-00003.bin
+          ......
 ```
 ## Fine-tuning
 ### ScienceQA
