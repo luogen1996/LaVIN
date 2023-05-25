@@ -4,7 +4,7 @@
 
 This repository contains the implementation of the following paper:
 > **Cheap and Quick: Efficient Vision-Language Instruction Tuning for Large Language Models** 
-> [[Project Page]]() [[Paper]]()  <br>
+> [[Project Page]](https://luogen1996.github.io/lavin/) [[Paper]](https://arxiv.org/pdf/2305.15023.pdf)  <br>
 > [Gen Luo](https://luogen1996.github.io)<sup>1</sup>,  Yiyi Zhou<sup>12</sup>, [Tianhe Ren](https://rentainhe.github.io)<sup>1</sup>, Shengxin Chen<sup>1</sup>, [Xiaoshuai Sun](https://sites.google.com/view/xssun)<sup>12</sup>, [Rongrong Ji](https://mac.xmu.edu.cn/rrji/)<sup>12</sup><br>
 <sup>1</sup>Media Analytics and Computing Lab, Department of Artificial Intelligence, School of Informatics, Xiamen University  
 > <sup>2</sup>Institute of Artificial Intelligence, Xiamen University 
@@ -19,7 +19,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
-- **`2023/05/17`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper]().
+- **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
 
 ## Contents
 - [Setup](#setup)
@@ -173,7 +173,7 @@ If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapte
 @article{luo2023cheap,
  title={Cheap and Quick: Efficient Vision-Language Instruction Tuning for Large Language Models},
  author={Luo, Gen and  Zhou, Yiyi and Ren, Tianhe and Chen, Shengxin abd Sun, Xiaoshuai and Ji, Rongrong},
- journal={arXiv preprint arXiv:},
+ journal={arXiv preprint arXiv:2305.15023},
  year={2023}
   }
 ```
