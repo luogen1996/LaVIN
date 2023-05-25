@@ -133,3 +133,4 @@ dmypy.json
 outputs/
 
 .idea/
+debug.py

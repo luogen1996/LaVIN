@@ -10,6 +10,8 @@ from enum import auto, Enum
 from typing import List, Tuple, Any
 import re
 
+ERROR_CODE= [260, 1794, 11440]
+ERROR_MESSAGE=[1, 7423, 29892, 474, 508, 29915, 29873, 1234, 445, 1139, 29889, 2]
 
 
 class SeparatorStyle(Enum):
@@ -141,32 +143,22 @@ class Chat:
         begin_idx = max(0, current_max_len - max_length)
 
         prompt = prompt[begin_idx:]
+        CODE=self.lavin.tokenizer.encode(prompt)
+        if ERROR_CODE in [CODE[i:i+len(ERROR_CODE)] for i in range(len(CODE)-len(ERROR_CODE)+1)]:
+            outputs=self.lavin.tokenizer.decode(ERROR_MESSAGE)
+        else:
+            outputs = self.lavin.generate(
+                prompts= [prompt],
+                images= img,
+                indicators=[indicator],
+                max_gen_len=max_length,
+                n_feats=n_feats,
+                temperature = 0.8,
+                top_p = 0.95,
+            )
 
-        # print(prompt)
-
-        outputs = self.lavin.generate(
-            prompts= [prompt],
-            images= img,
-            indicators=[indicator],
-            max_gen_len=max_length,
-            n_feats=n_feats,
-            temperature = 0.8,
-            top_p = 0.95,
-        )
-        # print(len(prompt))
-        # print()
-        # print(outputs)
-
-        # pattern = re.compile(r'Responese:.*')
         output_text = outputs[0].split('Responese:')[-1].strip()
-        # pattern.findall(outputs[0])[-1].replace('Responese:', '')
-        # if output_token[0] == 0:  # the model might output a unknow token <unk> at the beginning. remove it
-        #     output_token = output_token[1:]
-        # if output_token[0] == 1:  # some users find that there is a start token <s> at the beginning. remove it
-        #     output_token = output_token[1:]
-        # output_text = self.model.llama_tokenizer.decode(output_token, add_special_tokens=False)
-        # output_text = output_text.split('###')[0]  # remove the stop sign '###'
-        # output_text = output_text.split('Assistant:')[-1].strip()
+
         conv.messages[-1][1] = output_text
         return output_text
 
@@ -191,7 +183,7 @@ class Chat:
 
     def get_context_emb(self, conv, img_list):
         prompt = conv.get_prompt()
-        # print(prompt)
+
         if '<Img><ImageHere></Img>' in prompt:
             indicator=1
             prompt=prompt.replace('<Img><ImageHere></Img>','')
