@@ -153,8 +153,8 @@ class Chat:
                 indicators=[indicator],
                 max_gen_len=max_length,
                 n_feats=n_feats,
-                temperature = 0.8,
-                top_p = 0.95,
+                temperature = 0.1,
+                top_p = 0.75,
             )
 
         output_text = outputs[0].split('Responese:')[-1].strip()
