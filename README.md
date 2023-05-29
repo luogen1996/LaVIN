@@ -19,6 +19,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
+- **`2023/05/29`**: 🔥We released the demo and the pre-trained checkpoint (LLaMA-13B) for multimoda chatbot.
 - **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
 
 ## Contents
@@ -140,6 +141,11 @@ LaVIN supports both single- and multi-modal instruction inputs. Try your custom 
 torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 ```
 
+<div  align="center">    
+<img src="./assets/demo.gif" width="95%">
+</div>
+
+
 ## Model Zoo
 ### ScienceQA
 | Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights | 
@@ -153,7 +159,7 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 | Model     |Weights    |      Time | Memory | #Params | Acc |          Weights | 
 |-----------|----------:|---------:|-------:|--------:|----:|-----------------:|
 | LaVIN-13B | LLaMA | 25 hours |  55.9G |    5.4M |   - |                - |
-| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | coming soon| 
+| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | [google drive](https://drive.google.com/file/d/1rHQNSaiGzFHYGgsamtySPYnd5AW4OE9j/view?usp=share_link)| 
 
 ## Examples
 <div  align="center">    
