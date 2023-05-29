@@ -6,3 +6,4 @@ transformers
 timm
 tensorboard
 ftfy
+gradio
