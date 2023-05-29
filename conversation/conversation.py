@@ -143,7 +143,7 @@ class Chat:
         begin_idx = max(0, current_max_len - max_length)
 
         prompt = prompt[begin_idx:]
-        CODE=self.lavin.tokenizer.encode(prompt)
+        CODE=self.lavin.tokenizer.encode(prompt, bos=False, eos=False)
         if ERROR_CODE in [CODE[i:i+len(ERROR_CODE)] for i in range(len(CODE)-len(ERROR_CODE)+1)]:
             outputs=self.lavin.tokenizer.decode(ERROR_MESSAGE)
         else:
