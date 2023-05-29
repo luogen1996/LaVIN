@@ -145,7 +145,7 @@ class Chat:
         prompt = prompt[begin_idx:]
         CODE=self.lavin.tokenizer.encode(prompt, bos=False, eos=False)
         if ERROR_CODE in [CODE[i:i+len(ERROR_CODE)] for i in range(len(CODE)-len(ERROR_CODE)+1)]:
-            outputs=self.lavin.tokenizer.decode(ERROR_MESSAGE)
+            output_text=self.lavin.tokenizer.decode(ERROR_MESSAGE).split('Responese:')[-1].strip()
         else:
             outputs = self.lavin.generate(
                 prompts= [prompt],
@@ -157,7 +157,7 @@ class Chat:
                 top_p = 0.75,
             )
 
-        output_text = outputs[0].split('Responese:')[-1].strip()
+            output_text = outputs[0].split('Responese:')[-1].strip()
 
         conv.messages[-1][1] = output_text
         return output_text
