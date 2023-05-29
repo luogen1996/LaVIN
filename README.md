@@ -137,7 +137,7 @@ LaVIN supports both single- and multi-modal instruction inputs. Try your custom 
 
 - **Launch a gradio web server on your machine, then you can interact with LaVIN as you like.** 
 ```
-torchrun --nproc_per_node 1  python demo.py --server_name 127.0.0.1
+torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 ```
 
 ## Model Zoo
