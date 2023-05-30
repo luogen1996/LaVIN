@@ -15,7 +15,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 ---
 
 <div  align="center">    
-<img src="./assets/teaser.gif" width="95%">
+<img src="./assets/teaser-1.png" width="95%">
 </div>
 
 ## News 
@@ -148,7 +148,7 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 
 ## Model Zoo
 ### ScienceQA
-| Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights | 
+| Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights |
 |-----------|----------:|----------:|-------:|--------:|-----:|-----------------:|
 | LaVIN-7B  | LLaMA | 1.4 hours |  33.9G |    3.8M | 89.37 | [google drive](https://drive.google.com/file/d/10X2qCBYrLH1grZOHwHRMXLUoz-S6MSgV/view?usp=share_link) |
 | LaVIN-7B  | Vicuna | 1.4 hours |  33.9G |    3.8M | 89.41 | [google drive](https://drive.google.com/file/d/1nuMxeiWlnJKxDybCshg8pVGSvLc5dZy8/view?usp=share_link) |
@@ -156,10 +156,10 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 | LaVIN-13B | LLaMA |   4 hours |  55.9G |    5.4M | 90.8 | - |
 
 ### Multimodal ChatBot
-| Model     |Weights    |      Time | Memory | #Params | Acc |          Weights | 
+| Model     |Weights    |      Time | Memory | #Params | Acc |          Weights |
 |-----------|----------:|---------:|-------:|--------:|----:|-----------------:|
 | LaVIN-13B | LLaMA | 25 hours |  55.9G |    5.4M |   - |                - |
-| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | [google drive](https://drive.google.com/file/d/1rHQNSaiGzFHYGgsamtySPYnd5AW4OE9j/view?usp=share_link)| 
+| LaVIN-13B | LLaMA | 75 hours |  55.9G |    5.4M |   - | [google drive](https://drive.google.com/file/d/1rHQNSaiGzFHYGgsamtySPYnd5AW4OE9j/view?usp=share_link)|
 
 ## Examples
 <div  align="center">    
