@@ -183,7 +183,7 @@ If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapte
 
 @article{luo2023cheap,
  title={Cheap and Quick: Efficient Vision-Language Instruction Tuning for Large Language Models},
- author={Luo, Gen and  Zhou, Yiyi and Ren, Tianhe and Chen, Shengxin abd Sun, Xiaoshuai and Ji, Rongrong},
+ author={Luo, Gen and  Zhou, Yiyi and Ren, Tianhe and Chen, Shengxin and Sun, Xiaoshuai and Ji, Rongrong},
  journal={arXiv preprint arXiv:2305.15023},
  year={2023}
   }
