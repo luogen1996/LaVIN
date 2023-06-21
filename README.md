@@ -19,6 +19,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
+- **`2023/06/22`**: 🔥8-bit and 4-bit trainings are available now ! LaVIN-13B can be trained on a single 3090 GPU, taking around 12G GPU memory. Try it now !
 - **`2023/05/29`**: 🔥We released the demo and the pre-trained checkpoint (LLaMA-13B) for multimodal chatbot.
 - **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
 

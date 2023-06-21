@@ -1,10 +1,10 @@
-torchrun --nproc_per_node 2 --master_port 12345 train.py \
+CUDA_VISIBLE_DEVICES=2,3 torchrun --nproc_per_node 2 --master_port 11111 train.py \
     --llm_model 7B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
     --max_seq_len 512 \
-    --batch_size 4 \
-    --accum_iter 4 \
+    --batch_size 1 \
+    --accum_iter 16 \
     --epochs 20 \
     --warmup_epochs 2 \
     --blr 9e-3 \
@@ -16,7 +16,8 @@ torchrun --nproc_per_node 2 --master_port 12345 train.py \
     --n_prompt 6 \
     --prompt_format QCM-ALE \
     --temperature 10.\
-    --visual_adapter_type router
+    --visual_adapter_type router \
+    --gradient_checkpointing
 
 torchrun --nproc_per_node 1  eval.py \
     --ckpt_dir ../data/weights/ \
