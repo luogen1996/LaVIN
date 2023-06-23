@@ -4,7 +4,11 @@ import torch
 from torch import  nn
 import bitsandbytes as bnb
 
-
+from fairscale.nn.model_parallel.layers import (
+    ParallelEmbedding,
+    RowParallelLinear,
+    ColumnParallelLinear,
+)
 def _replace_with_bnb_linear(
     model, modules_to_not_convert=None, current_key_name=None, quantization_config=None, has_been_replaced=False
 ):
@@ -18,7 +22,7 @@ def _replace_with_bnb_linear(
             current_key_name = []
         current_key_name.append(name)
 
-        if isinstance(module, nn.Linear) and name not in modules_to_not_convert:
+        if (isinstance(module, nn.Linear) or isinstance(module, ColumnParallelLinear)  or isinstance(module, RowParallelLinear)  ) and name not in modules_to_not_convert:
             # Check if the current key is not in the `modules_to_not_convert`
             if not any(key in ".".join(current_key_name) for key in modules_to_not_convert):
                 # with init_empty_weights():

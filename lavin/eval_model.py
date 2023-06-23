@@ -236,7 +236,7 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
-        self.backbone = clip.load('ViT-L/14', device='cpu')[0]
+        self.backbone = clip.load('ViT-L/14')[0]
 
         self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim)
         self.adapter_modality_embedding=nn.Embedding(2,params.dim)

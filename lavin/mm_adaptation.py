@@ -88,7 +88,12 @@ def LaVIN(args):
     )
 
     model_args.vocab_size = tokenizer.n_words
-    torch.set_default_tensor_type(torch.cuda.HalfTensor)
+
+    if args.cpu_load:
+        #cpu load is slow, but is freindly for GPU with limited memory.
+        torch.set_default_tensor_type(torch.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
     llama = Transformer(model_args)
 
@@ -97,8 +102,9 @@ def LaVIN(args):
 
     torch.set_default_tensor_type(torch.FloatTensor)
 
-    from util.quantization import quant_model_bnb
-    llama.layers=quant_model_bnb(llama.layers)
+    if args.bits in ['4bit','8bit']:
+        from util.quantization import quant_model_bnb
+        llama.layers=quant_model_bnb(llama.layers,quant_bit=args.bits)
 
     llama.load_state_dict(checkpoint, strict=False)
     if args.use_vicuna:

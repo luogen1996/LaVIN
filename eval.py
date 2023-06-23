@@ -245,7 +245,9 @@ llm_model:str,
     hidden_proj:int,
     visual_adapter_type: str,
     temperature: float,
-use_vicuna: bool
+    use_vicuna: bool,
+    bits: str='16bits',
+    cpu_load:bool=False,
 ) -> LaVIN_Generator:
     start_time = time.time()
     checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(ckpt_dir, llm_model)
@@ -259,23 +261,36 @@ use_vicuna: bool
     )
     model_args.vocab_size = tokenizer.n_words
 
-    torch.set_default_tensor_type(torch.cuda.HalfTensor)
+    if cpu_load:
+        #cpu load is slow, but is freindly for GPU with limited memory.
+        torch.set_default_tensor_type(torch.HalfTensor)
+    else:
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+
     model = Transformer(model_args)
-    set_MMAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
-    set_Clip_Adapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
 
     torch.set_default_tensor_type(torch.FloatTensor)
+
+    if bits in ['4bit','8bit']:
+        from util.quantization import quant_model_bnb
+        model.layers = quant_model_bnb(model.layers, quant_bit='4bit')
     model.load_state_dict(checkpoint, strict=False)
 
     if use_vicuna:
         apply_model_delta_online(model,'../data/weights/vicuna_'+llm_model)
+
+
+    set_MMAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
+    set_Clip_Adapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
 
     state_dict={}
     for key in adapter_checkpoint['model']:
         state_dict[key.replace('module.','')]=adapter_checkpoint['model'][key]
 
     model.load_state_dict(state_dict, strict=False)
-
+    model.to(torch.device('cuda'))
+    for name, param in model.named_parameters():
+        print(name,param.dtype)
     generator = LaVIN_Generator(model, tokenizer)
     print(f"Loaded in {time.time() - start_time:.2f} seconds")
     return generator
@@ -311,7 +326,9 @@ def main(
     hidden_proj=128,
     visual_adapter_type='normal',
     temperature=10.,
-    use_vicuna=False
+    use_vicuna=False,
+    bits: str='16bits',
+    cpu_load:bool=False,
 ):
     print(max_batch_size,max_seq_len)
     print('use caption: ',use_caption)
@@ -322,7 +339,7 @@ def main(
     generator = load(
         ckpt_dir,llm_model, tokenizer_path, adapter_path, local_rank, world_size, max_seq_len, max_batch_size,
         adapter_type,adapter_dim,adapter_scale,hidden_proj,visual_adapter_type,
-    temperature,use_vicuna)
+    temperature,use_vicuna,bits=bits,cpu_load=cpu_load)
 
     print('split: ', split)
     problems = json.load(open(os.path.join(data_root, 'problems.json')))
