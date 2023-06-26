@@ -188,8 +188,8 @@ def main(args):
     model.to(device)
 
     #for debug.   print the data type.
-    # for name, param in model.named_parameters():
-    #     print(name,param.dtype)
+    for name, param in model.named_parameters():
+        print(name,param.dtype)
 
     model_without_ddp = model
 

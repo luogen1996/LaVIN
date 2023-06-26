@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
                         help='the insert position  of adapter layer')
     parser.add_argument('--adapter_path', type=str, default='./15-eph-pretrain.pth',  help='path of pre-trained adapter')
-    parser.add_argument('--temperature', type=float, default=10., metavar='LENGTH',
+    parser.add_argument('--temperature', type=float, default=5., metavar='LENGTH',
                         help='the temperature of router')
     parser.add_argument('--use_vicuna',  action='store_true',   help='use vicuna weights')
     parser.add_argument(

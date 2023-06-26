@@ -268,20 +268,23 @@ llm_model:str,
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
 
     model = Transformer(model_args)
+    #delete language encoder
+    del model.backbone.transformer
 
     torch.set_default_tensor_type(torch.FloatTensor)
 
     if bits in ['4bit','8bit']:
         from util.quantization import quant_model_bnb
         model.layers = quant_model_bnb(model.layers, quant_bit='4bit')
+
+    set_MMAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
+    set_Clip_Adapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
+
     model.load_state_dict(checkpoint, strict=False)
 
     if use_vicuna:
         apply_model_delta_online(model,'../data/weights/vicuna_'+llm_model)
 
-
-    set_MMAdapter(model, adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
-    set_Clip_Adapter(model.backbone.visual, visual_adapter_type, dim=adapter_dim, s=adapter_scale,t=temperature)
 
     state_dict={}
     for key in adapter_checkpoint['model']:
@@ -289,6 +292,7 @@ llm_model:str,
 
     model.load_state_dict(state_dict, strict=False)
     model.to(torch.device('cuda'))
+
     for name, param in model.named_parameters():
         print(name,param.dtype)
     generator = LaVIN_Generator(model, tokenizer)
@@ -391,7 +395,7 @@ def main(
 
 
         results = generator.generate(
-            prompts,images=images,indicators=indicators, max_gen_len=512, temperature=generation_temperature, top_p=top_p,n_feats=n_prompt
+            prompts,images=images,indicators=indicators, max_gen_len=64, temperature=generation_temperature, top_p=top_p,n_feats=n_prompt
         )
 
         for result in results:

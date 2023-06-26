@@ -1,0 +1,122 @@
+CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node 1 --master_port 11111 train.py \
+    --llm_model 7B\
+    --llama_model_path ../data/weights/ \
+    --data_path ../data/alpaca_data.json \
+    --max_seq_len 512 \
+    --batch_size 1 \
+    --accum_iter 32 \
+    --epochs 20 \
+    --warmup_epochs 2 \
+    --blr 9e-3 \
+    --weight_decay 0.02 \
+    --output_dir ./LaVIN-7B-lite-dim-10/\
+    --adapter_type attn\
+    --adapter_dim 10\
+    --adapter_scale 1\
+    --n_prompt 6 \
+    --prompt_format QCM-ALE \
+    --temperature 10.\
+    --visual_adapter_type router \
+    --gradient_checkpointing \
+    --bits 4bit  &
+
+CUDA_VISIBLE_DEVICES=1 torchrun --nproc_per_node 1 --master_port 11112 train.py \
+    --llm_model 7B\
+    --llama_model_path ../data/weights/ \
+    --data_path ../data/alpaca_data.json \
+    --max_seq_len 512 \
+    --batch_size 1 \
+    --accum_iter 32 \
+    --epochs 20 \
+    --warmup_epochs 2 \
+    --blr 9e-3 \
+    --weight_decay 0.02 \
+    --output_dir ./LaVIN-7B-lite-dim-12/\
+    --adapter_type attn\
+    --adapter_dim 12\
+    --adapter_scale 1\
+    --n_prompt 6 \
+    --prompt_format QCM-ALE \
+    --temperature 10.\
+    --visual_adapter_type router \
+    --gradient_checkpointing \
+    --bits 4bit  &
+
+CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1 --master_port 11113 train.py \
+    --llm_model 7B\
+    --llama_model_path ../data/weights/ \
+    --data_path ../data/alpaca_data.json \
+    --max_seq_len 512 \
+    --batch_size 1 \
+    --accum_iter 32 \
+    --epochs 20 \
+    --warmup_epochs 2 \
+    --blr 9e-3 \
+    --weight_decay 0.02 \
+    --output_dir ./LaVIN-7B-lite-dim-16/\
+    --adapter_type attn\
+    --adapter_dim 16\
+    --adapter_scale 1\
+    --n_prompt 6 \
+    --prompt_format QCM-ALE \
+    --temperature 10.\
+    --visual_adapter_type router \
+    --gradient_checkpointing \
+    --bits 4bit
+
+CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node 1  eval.py \
+    --ckpt_dir ../data/weights/ \
+    --llm_model 7B\
+    --tokenizer_path ../data/weights/tokenizer.model \
+    --data_root ../data \
+    --caption_file ../data/captions.json \
+    --adapter_path ./LaVIN-7B-lite-10/checkpoint-19.pth \
+    --adapter_type attn \
+    --adapter_dim 10 \
+    --adapter_scale 1 \
+    --prompt_format QCM-ALE \
+    --max_batch_size 64\
+    --max_seq_len 512 \
+    --split test \
+    --n_prompt 6 \
+    --temperature 10.\
+    --visual_adapter_type router\
+    --bits 4bit
+
+CUDA_VISIBLE_DEVICES=1 torchrun --nproc_per_node 1  eval.py \
+    --ckpt_dir ../data/weights/ \
+    --llm_model 7B\
+    --tokenizer_path ../data/weights/tokenizer.model \
+    --data_root ../data \
+    --caption_file ../data/captions.json \
+    --adapter_path ./LaVIN-7B-lite-12/checkpoint-19.pth \
+    --adapter_type attn \
+    --adapter_dim 12 \
+    --adapter_scale 1 \
+    --prompt_format QCM-ALE \
+    --max_batch_size 64\
+    --max_seq_len 512 \
+    --split test \
+    --n_prompt 6 \
+    --temperature 10.\
+    --visual_adapter_type router\
+    --bits 4bit
+
+CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
+    --ckpt_dir ../data/weights/ \
+    --llm_model 7B\
+    --tokenizer_path ../data/weights/tokenizer.model \
+    --data_root ../data \
+    --caption_file ../data/captions.json \
+    --adapter_path ./LaVIN-7B-lite-16/checkpoint-19.pth \
+    --adapter_type attn \
+    --adapter_dim 16 \
+    --adapter_scale 1 \
+    --prompt_format QCM-ALE \
+    --max_batch_size 64\
+    --max_seq_len 512 \
+    --split test \
+    --n_prompt 6 \
+    --temperature 10.\
+    --visual_adapter_type router\
+    --bits 4bit

@@ -52,7 +52,7 @@ class LaVIN_Generator:
         self.model.backbone.cuda()
 
         image_embeds= self.model.backbone.encode_image(images)
-        image_embeds=self.model.adapter_proj(image_embeds.half())
+        image_embeds=self.model.adapter_proj(image_embeds)
 
 
         prompt_tokens=[]
