@@ -115,9 +115,9 @@ def forward_llama_block_cache(self, x: torch.Tensor, start_pos: int, freqs_cis: 
     bs_=x.shape[0]
     if start_pos==0:
         self.cache_weights[:bs_]=torch.softmax(self.adapter_attn.expert_weights(self.attention_norm(x)[:,0].float())/self.t,-1).half()
-        self.cache_weights[:bs_]=torch.softmax(self.adapter_ffn.expert_weights(self.attention_norm(x)[:,0].float())/self.t,-1).half()
+        self.cache_weights_ffn[:bs_]=torch.softmax(self.adapter_mlp.expert_weights(self.ffn_norm(x)[:,0].float())/self.t,-1).half()
     h = x + self.drop_path(self.attention.forward(self.adapter_attn(self.attention_norm(x),weights=self.cache_weights[:bs_]), start_pos, freqs_cis, mask, adapter))
-    out = h + self.drop_path(self.feed_forward.forward(self.ffn_norm(h)))
+    out = h + self.drop_path(self.feed_forward.forward(self.adapter_mlp(self.ffn_norm(h),self.cache_weights_ffn[:bs_])))
     return out
 
 def forward_clip(self, x: torch.Tensor):
@@ -136,10 +136,11 @@ def set_MMAdapter(model, method, dim=8, s=1, set_forward=True,t=10,gradient_chec
         # not support right now
         assert NotImplementedError
         for _ in model.children():
-            if type(_) == lavin.eval_model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
+            if type(_) ==  lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
                 _.adapter_attn = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t)
                 _.adapter_mlp = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t)
                 _.s = s
+                _.t = t
                 _.gradient_checkpointing=gradient_checkpointing
                 if type(_) == lavin.eval_model.TransformerBlock:
                     bound_method = forward_llama_block_cache.__get__(_, _.__class__)

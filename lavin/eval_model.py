@@ -206,6 +206,9 @@ class TransformerBlock(nn.Module):
         self.cache_weights = torch.zeros(
             (args.max_batch_size, 2)
         ).cuda()
+        self.cache_weights_ffn = torch.zeros(
+            (args.max_batch_size, 2)
+        ).cuda()
     def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
         h = x + self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter)
         out = h + self.feed_forward.forward(self.ffn_norm(h))

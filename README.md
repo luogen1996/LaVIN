@@ -19,14 +19,14 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
-- **`2023/06/22`**: 🔥4-bit and 8-bit trainings are available now ! LaVIN can be trained on a single 3090 GPU, taking around 8G and 14G GPU memory for LaVIN-7B and LaVIN-13B, respectively. Try it now !
+- **`2023/06/27`**: 🔥4-bit trainings are available now ! LaVIN-lite can be trained on one 3090 GPU, taking around 9G and 15G GPU memory for the scales of 7B  and 13B , respectively.  Technical details are available  in [知乎]().
 - **`2023/05/29`**: 🔥We released the demo and the pre-trained checkpoint (LLaMA-13B) for multimodal chatbot.
 - **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
 
 ## TODO 
 - [x] Release training codes.
 - [x] Release checkpoints and demo.
-- [x] 4-bit and 8-bit training. 
+- [x] 4-bit training. 
 - [ ] Support more modalities, e.g., audio and video.
 
 ## Contents
@@ -98,7 +98,7 @@ data/
 ## Fine-tuning
 ### ScienceQA
 Reproduce the performance of LaVIN-7B on ScienceQA (~1.4 hours on 8x A100 (80G)).
-For 7B model, we fine-tune it on 2x A100.
+For 7B model, we fine-tune it on 2x A100 (we find that the performance will be affected by the number of GPUs. We are working to address this problem).
 
 
 LLaMA weights:
@@ -111,6 +111,10 @@ Vicuna weights:
 bash ./scripts/finetuning_sqa_vicuna_7b.sh
 ```
 
+LaVIN-lite with LLaMA weights (single GPU):
+```bash
+bash ./scripts/finetuning_sqa_vicuna_7b_lite.sh
+```
 
 Reproduce the performance of LaVIN-13B on ScienceQA (~2 hours on 8x A100 (80G)).
 For 13B model, we fine-tune it on 8x A100.
@@ -124,6 +128,10 @@ Vicuna weights:
 ```bash
 bash ./scripts/finetuning_sqa_vicuna_13b.sh
 ```
+LaVIN-lite with LLaMA weights (single GPU):
+```bash
+bash ./scripts/finetuning_sqa_vicuna_13b_lite.sh
+```
 ### MultiModal ChatBot
 Fine-tune LaVIN-13B on 210k instruction-following data (~ 75 hours with 15 epochs and ~25 hours with 5 epochs on 8x A100 (80G) )
 
@@ -136,8 +144,8 @@ Vicuna weights:
 ```bash
 bash ./scripts/vl_instruction_tuning_vicuna_13b.sh
 ```
-To train on fewer GPUs, you can reduce the number of gpus in the scripts and increase gradient accumulation via ```--accum_iter``` to guarantee the total batch size of 32. Setting  ```--gradient_checkpointing``` in the scripts will reduce the requirements of GPU memory.
-**Note that the performance may drop if the batch size per gpu is less than 4.** We are figuring out the reason.
+To train on fewer GPUs, you can reduce the number of gpus in the scripts and increase gradient accumulation via ```--accum_iter``` to guarantee the total batch size of 32. Setting  ```--gradient_checkpointing```  and ```--bits 4bit``` in the scripts will greatly reduce the requirements of GPU memory.
+
 
 ## Demo
 
