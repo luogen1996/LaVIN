@@ -19,7 +19,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
-- **`2023/06/27`**: 🔥4-bit trainings are available now ! LaVIN-lite can be trained on one 3090 GPU, taking around 9G and 15G GPU memory for the scales of 7B  and 13B , respectively.  Technical details are available  in [知乎]().
+- **`2023/06/27`**: 🔥4-bit trainings are available now ! LaVIN-lite can be trained on one 3090 GPU, taking around 9G and 15G GPU memory for the scales of 7B  and 13B , respectively.  Technical details are available  in [知乎](https://zhuanlan.zhihu.com/p/638784025).
 - **`2023/05/29`**: 🔥We released the demo and the pre-trained checkpoint (LLaMA-13B) for multimodal chatbot.
 - **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
 
@@ -97,7 +97,7 @@ data/
 ```
 ## Fine-tuning
 ### ScienceQA
-Reproduce the performance of LaVIN-7B on ScienceQA (~1.4 hours on 8x A100 (80G)).
+Reproduce the performance of LaVIN-7B on ScienceQA.
 For 7B model, we fine-tune it on 2x A100 (we find that the performance will be affected by the number of GPUs. We are working to address this problem).
 
 
@@ -165,6 +165,7 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 ### ScienceQA
 | Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights |
 |-----------|----------:|----------:|-------:|--------:|-----:|-----------------:|
+| LaVIN-7B-lite  | LLaMA | 29 hours (single GPU) |  9G |    3.8M | 88.35 | [google drive](https://drive.google.com/file/d/1oVtoTgt-d9EqmrVic27oZUreN9dLClMo/view?usp=sharing) |
 | LaVIN-7B  | LLaMA | 1.4 hours |  33.9G |    3.8M | 89.37 | [google drive](https://drive.google.com/file/d/10X2qCBYrLH1grZOHwHRMXLUoz-S6MSgV/view?usp=share_link) |
 | LaVIN-7B  | Vicuna | 1.4 hours |  33.9G |    3.8M | 89.41 | [google drive](https://drive.google.com/file/d/1nuMxeiWlnJKxDybCshg8pVGSvLc5dZy8/view?usp=share_link) |
 | LaVIN-13B | LLaMA |   2 hours |  55.9G |    5.4M | 90.54 | [google drive](https://drive.google.com/file/d/1LkKUY54spZkkeXrR7BDmU-xmK9YadcKM/view?usp=share_link) |

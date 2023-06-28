@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=3 torchrun --nproc_per_node 1 --master_port 12345 train.py \
+torchrun --nproc_per_node 1 train.py \
     --llm_model 13B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES=3 torchrun --nproc_per_node 1 --master_port 12345 train.py 
     --warmup_epochs 2 \
     --blr 9e-3 \
     --weight_decay 0.02 \
-    --output_dir ./LaVIN-13B/\
+    --output_dir ./LaVIN-13B-lite/\
     --adapter_type attn\
     --adapter_dim 8\
     --adapter_scale 1\
@@ -27,7 +27,7 @@ torchrun --nproc_per_node 1  eval.py \
     --tokenizer_path ../data/weights/tokenizer.model \
     --data_root ../data \
     --caption_file ../data/captions.json \
-    --adapter_path ./LaVIN-13B/checkpoint-19.pth \
+    --adapter_path ./LaVIN-13B-lite/checkpoint-19.pth \
     --adapter_type attn \
     --adapter_dim 8 \
     --adapter_scale 1 \
@@ -37,4 +37,5 @@ torchrun --nproc_per_node 1  eval.py \
     --split test \
     --n_prompt 6 \
     --temperature 5.\
-    --visual_adapter_type router
+    --visual_adapter_type router \
+    --bits 4bit

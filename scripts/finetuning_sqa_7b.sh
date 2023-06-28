@@ -1,15 +1,15 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node 4 --master_port 11111 train.py \
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node 2 --master_port 11111 train.py \
     --llm_model 7B\
     --llama_model_path ../data/weights/ \
     --data_path ../data/alpaca_data.json \
     --max_seq_len 512 \
     --batch_size 4 \
-    --accum_iter 1 \
+    --accum_iter 4 \
     --epochs 20 \
     --warmup_epochs 2 \
     --blr 9e-3 \
     --weight_decay 0.02 \
-    --output_dir ./LaVIN-7B-bs64/\
+    --output_dir ./LaVIN-7B/\
     --adapter_type attn\
     --adapter_dim 8\
     --adapter_scale 1\
@@ -24,7 +24,7 @@ CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1 --master_port 11111 eval.py \
     --tokenizer_path ../data/weights/tokenizer.model \
     --data_root ../data \
     --caption_file ../data/captions.json \
-    --adapter_path ./LaVIN-7B-2gpus/checkpoint-19.pth \
+    --adapter_path ./LaVIN-7B/checkpoint-19.pth \
     --adapter_type attn \
     --adapter_dim 8 \
     --adapter_scale 1 \
