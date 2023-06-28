@@ -1,9 +1,10 @@
-torch
+torch==1.13.0
 fairscale
 fire
 sentencepiece
-transformers
+transformers==4.30.0
 timm
 tensorboard
 ftfy
 gradio
+bitsandbytes==0.39.0

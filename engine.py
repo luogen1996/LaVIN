@@ -45,14 +45,15 @@ def train_one_epoch(model: torch.nn.Module,
         loss_value = loss.item()
         c_loss_value = c_loss.item()
 
-        if not math.isfinite(loss_value):
-            print("Loss is {}, stopping training".format(loss_value))
-            sys.exit(1)
+
+        if torch.isnan(loss):
+            print("NaN loss encountered. Skipping this batch.")
+            continue
 
         loss = loss/accum_iter
 
         loss_scaler(loss, optimizer, parameters=model.parameters(),
-                    update_grad=(data_iter_step + 1) % accum_iter == 0)
+                    update_grad=(data_iter_step + 1) % accum_iter == 0,clip_grad=args.clip_grad)
         if (data_iter_step + 1) % accum_iter == 0:
             optimizer.zero_grad()
 

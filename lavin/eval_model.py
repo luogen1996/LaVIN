@@ -206,12 +206,15 @@ class TransformerBlock(nn.Module):
         self.cache_weights = torch.zeros(
             (args.max_batch_size, 2)
         ).cuda()
+        self.cache_weights_ffn = torch.zeros(
+            (args.max_batch_size, 2)
+        ).cuda()
     def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
         h = x + self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter)
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
-
+from  torch.cuda.amp import autocast
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
         super().__init__()
@@ -236,29 +239,30 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
-        self.backbone = clip.load('ViT-L/14', device='cpu')[0]
+        self.backbone = clip.load('ViT-L/14')[0]
 
-        self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim)
-        self.adapter_modality_embedding=nn.Embedding(2,params.dim)
+        self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
+        self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
 
     @torch.inference_mode()
     def forward(self, tokens: torch.Tensor, start_pos: int):
-        _bsz, seqlen,_ = tokens.shape
-        # h = self.tok_embeddings(tokens)
-        h=tokens
-        self.freqs_cis = self.freqs_cis.to(h.device)
-        freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
+        with autocast():
+            _bsz, seqlen,_ = tokens.shape
+            # h = self.tok_embeddings(tokens)
+            h=tokens
+            self.freqs_cis = self.freqs_cis.to(h.device)
+            freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
 
-        mask = None
-        if seqlen > 1:
-            mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=tokens.device)
-            mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
-            # mask decision token
-            mask[:, :, 1:, 0] = float("-inf")
+            mask = None
+            if seqlen > 1:
+                mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=tokens.device)
+                mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
+                # mask decision token
+                mask[:, :, 1:, 0] = float("-inf")
 
-        for layer in self.layers:
-            h = layer(h, start_pos, freqs_cis,mask)
+            for layer in self.layers:
+                h = layer(h, start_pos, freqs_cis,mask)
 
-        h = self.norm(h)
-        output = self.output(h[:, -1, :])  # only compute last logits
-        return output.float()
+            h = self.norm(h)
+            output = self.output(h[:, -1, :])  # only compute last logits
+            return output.float()

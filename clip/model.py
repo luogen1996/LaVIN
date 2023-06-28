@@ -442,7 +442,7 @@ def build_model(state_dict: dict):
     for key in ["input_resolution", "context_length", "vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-
+    model.float()
     convert_weights(model)
     model.load_state_dict(state_dict,strict=False)
     return model.eval()

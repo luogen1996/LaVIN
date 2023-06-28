@@ -18,13 +18,15 @@ from engine import train_one_epoch
 from util.datasets import ScienceQADataSet,InstrcutDataSet
 from lavin.mm_adaptation import LaVIN
 
-
+import bitsandbytes as bnb
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE pre-training', add_help=False)
     parser.add_argument('--batch_size', default=64, type=int,
                         help='Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus')
-    parser.add_argument('--epochs', default=400, type=int) 
+    parser.add_argument('--epochs', default=400, type=int)
+    parser.add_argument('--bits', default='16bit', type=str,choices=['4bit','8bit','16bit'],
+                        help='Quantization bits for training, fp16 by default')
     parser.add_argument('--accum_iter', default=1, type=int,
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
@@ -36,6 +38,8 @@ def get_args_parser():
                         help='Name of llm model to train')
 
     parser.add_argument('--use_vicuna',  action='store_true',   help='use vicuna weights')
+
+    parser.add_argument('--cpu_load',  action='store_true',   help='load the model on cpu and avoid OOM on gpu')
 
     #block is not supported now.
     parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
@@ -68,6 +72,8 @@ def get_args_parser():
 
     parser.add_argument('--lr', type=float, default=None, metavar='LR',
                         help='learning rate (absolute lr)')
+    parser.add_argument('--clip_grad', type=float, default=None, metavar='clip gradient',
+                        help='clips gradient norm of an iterable of parameters')
     parser.add_argument('--blr', type=float, default=1e-3, metavar='LR',
                         help='base learning rate: absolute_lr = base_lr * total_batch_size / 256')
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
@@ -122,7 +128,6 @@ def get_args_parser():
     parser.add_argument('--caption_file', type=str, default='../data/captions.json')
     parser.add_argument('--data_root', type=str, default='../data')
     parser.add_argument('--use_caption', action='store_true', help='use image captions or not')
-
     parser.add_argument('--do_pretrain', action='store_true', help='pre-train on large scale vl instruction')
 
     return parser
@@ -182,8 +187,14 @@ def main(args):
 
     model.to(device)
 
+    #for debug.   print the data type.
+    for name, param in model.named_parameters():
+        print(name,param.dtype)
+
     model_without_ddp = model
-    print("Model = %s" % str(model_without_ddp))
+
+    #for debug. print the model.
+    # print("Model = %s" % str(model_without_ddp))
 
     eff_batch_size = args.batch_size * args.accum_iter * misc.get_world_size()
     
@@ -198,13 +209,17 @@ def main(args):
 
     if args.distributed:
         print(args.gpu)
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu],find_unused_parameters=True)
         model_without_ddp = model.module
     
     # following timm: set wd as 0 for bias and norm layers
     param_groups = optim_factory.param_groups_weight_decay(model_without_ddp, args.weight_decay)
-    optimizer = torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.95))
+
+    #following qlora: apply paged optimizer
+    optimizer = bnb.optim.AdamW32bit(param_groups, lr=args.lr, betas=(0.9, 0.95),is_paged=True) #torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.95))
     print(optimizer)
+
+    #mixed precision scaler
     loss_scaler = NativeScaler()
 
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)

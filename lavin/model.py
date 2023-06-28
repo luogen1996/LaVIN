@@ -233,6 +233,7 @@ class Transformer(nn.Module):
 
         self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
 
+        # with init_empty_weights():
         self.layers = torch.nn.ModuleList()
         for layer_id in range(params.n_layers):
             self.layers.append(TransformerBlock(layer_id, params))
@@ -246,12 +247,12 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
-        self.backbone = clip.load('ViT-L/14', device='cpu')[0]
+        self.backbone = clip.load('ViT-L/14')[0]
 
 
         #handcraft define self.backbone.visual.transformer.width
-        self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim)
-        self.adapter_modality_embedding=nn.Embedding(2,params.dim)
+        self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
+        self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
 
 
 
