@@ -166,6 +166,7 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 | Model     |  Weights    |      Time | Memory | #Params |  Acc |          Weights |
 |-----------|----------:|----------:|-------:|--------:|-----:|-----------------:|
 | LaVIN-7B-lite  | LLaMA | 29 hours (single GPU) |  9G |    3.8M | 88.35 | [google drive](https://drive.google.com/file/d/1oVtoTgt-d9EqmrVic27oZUreN9dLClMo/view?usp=sharing) |
+| LaVIN-13B-lite  | LLaMA | 42 hours (single GPU) |  14G |    5.4M | 89.44 | [google drive](https://drive.google.com/file/d/1PyVsap3FnmgXOGXFXjYsAtR75cFypaHw/view?usp=sharing) |
 | LaVIN-7B  | LLaMA | 1.4 hours |  33.9G |    3.8M | 89.37 | [google drive](https://drive.google.com/file/d/10X2qCBYrLH1grZOHwHRMXLUoz-S6MSgV/view?usp=share_link) |
 | LaVIN-7B  | Vicuna | 1.4 hours |  33.9G |    3.8M | 89.41 | [google drive](https://drive.google.com/file/d/1nuMxeiWlnJKxDybCshg8pVGSvLc5dZy8/view?usp=share_link) |
 | LaVIN-13B | LLaMA |   2 hours |  55.9G |    5.4M | 90.54 | [google drive](https://drive.google.com/file/d/1LkKUY54spZkkeXrR7BDmU-xmK9YadcKM/view?usp=share_link) |
