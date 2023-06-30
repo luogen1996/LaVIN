@@ -1,4 +1,4 @@
-torchrun --nproc_per_node 1 --master_port 11345 eval.py \
+torchrun --nproc_per_node 1 --master_port 11345 eval_mme.py \
     --ckpt_dir ../data/weights/ \
     --llm_model 7B\
     --tokenizer_path ../data/weights/tokenizer.model \
