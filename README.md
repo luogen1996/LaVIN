@@ -19,7 +19,7 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 </div>
 
 ## News 
-- **`2023/06/30`**: 🔥🔥🔥 With very limited training data and cost, LaVIN achieves 3-th place of Perception and Cognition on MME benchmark， outperforming seven existing multimodal LLMs. Evaluation codes are available. 
+- **`2023/06/30`**: 🔥🔥🔥 With very limited training data and cost, LaVIN achieves 3-th place of Perception and Cognition on [MME benchmark](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation)， outperforming seven existing multimodal LLMs. Evaluation codes are available. 
 - **`2023/06/27`**: 🔥4-bit trainings are available now ! LaVIN-lite can be trained on one 3090 GPU, taking around 9G and 15G GPU memory for the scales of 7B  and 13B , respectively.  Technical details are available  in [知乎](https://zhuanlan.zhihu.com/p/638784025).
 - **`2023/05/29`**: 🔥We released the demo and the pre-trained checkpoint (LLaMA-13B) for multimodal chatbot.
 - **`2023/05/25`**: 🔥We released the code of  **LaVIN: Large Vision-Language Instructed model**, which achieves 89.4 (LaVIN-7B) and 90.8 (LaVIN-13B)  accuracy on ScienceQA! 🔥With the proposed **mixture-of-modality adaptation**, the training time and trainable parameters can be reduced to 1.4 hours and 3.8M, respectively!  Checkout the [paper](https://arxiv.org/pdf/2305.15023.pdf).
