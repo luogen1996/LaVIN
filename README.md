@@ -184,6 +184,9 @@ torchrun --nproc_per_node 1 demo.py --server_name 127.0.0.1
 <img src="./assets/examples.png" width="95%">
 </div>
 
+##Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=luogen1996/LaVIN&type=Date)](https://star-history.com/#luogen1996/LaVIN&Date)
+
 ## Citation
 If you think our code and paper helpful, please kindly cite LaVIN and [RepAdapter](https://github.com/luogen1996/RepAdapter/):
 ```BibTeX
