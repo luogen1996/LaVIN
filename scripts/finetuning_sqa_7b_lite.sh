@@ -10,7 +10,7 @@ CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1 --master_port 11111 train.py 
     --blr 9e-3 \
     --weight_decay 0.02 \
     --output_dir ./LaVIN-7B-lite/\
-    --adapter_type attn\
+    --adapter_type router\
     --adapter_dim 8\
     --adapter_scale 1\
     --n_prompt 6 \
@@ -28,7 +28,7 @@ CUDA_VISIBLE_DEVICES=2 torchrun --nproc_per_node 1  eval.py \
     --data_root ../data \
     --caption_file ../data/captions.json \
     --adapter_path ./LaVIN-7B-lite/checkpoint-19.pth \
-    --adapter_type attn \
+    --adapter_type router \
     --adapter_dim 8 \
     --adapter_scale 1 \
     --prompt_format QCM-ALE \

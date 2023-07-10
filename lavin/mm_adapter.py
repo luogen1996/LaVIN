@@ -6,6 +6,51 @@ from typing import Optional, Tuple
 from  torch.cuda.amp import autocast
 import lavin.eval_model
 
+class RepAdapter_Router_plus(nn.Module):
+    """ Pytorch Implemention of RepAdapter for 1d tensor"""
+
+    def __init__(
+            self,
+            in_features=768,
+            hidden_dim=8,
+            groups=2,
+            scale=1,
+            t=10.,
+            n_router=2
+    ):
+        super().__init__()
+        self.conv_A=nn.ModuleList([nn.Conv1d(in_features,hidden_dim,1,groups=1,bias=True) for i in range(n_router)])
+
+
+        self.conv_B = nn.ModuleList([nn.Conv1d(hidden_dim, in_features, 1, groups=groups, bias=True) for i in range(n_router)])
+
+
+        self.expert_weights=nn.Linear(in_features,n_router)
+
+        self.dropout=nn.Dropout(0.1)
+        self.groups=groups
+        self.scale=scale
+        self.t=t
+
+
+        for conv in self.conv_A:
+            nn.init.xavier_uniform_(conv.weight)
+            nn.init.zeros_(conv.bias)
+        for conv in self.conv_B:
+            nn.init.zeros_(conv.weight)
+            nn.init.zeros_(conv.bias)
+
+    def forward(self, x,weights=None):
+        with autocast():
+            if weights is None:
+                weights=torch.softmax(self.expert_weights(x[:,0])/self.t,-1).half()
+            x=x.transpose(1,2)
+            out=0
+            for i,conv in enumerate(self.conv_A):
+                out+=self.conv_B[i](self.dropout(self.conv_A[i](x)))*self.scale*weights[:,i,None,None]
+            out=out+x
+            x=out.transpose(1,2).contiguous()
+        return x
 
 class RepAdapter_Router(nn.Module):
     """ Pytorch Implemention of RepAdapter for 1d tensor"""
@@ -132,40 +177,25 @@ def forward_clip_full(self, x: torch.Tensor):
 
 
 def set_MMAdapter(model, method, dim=8, s=1, set_forward=True,t=10,gradient_checkpointing=False):
-    if method == 'block':
-        # not support right now
-        assert NotImplementedError
-        for _ in model.children():
-            if type(_) ==  lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
+    for _ in model.children():
+        if type(_) == lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
+            if method=='router':
                 _.adapter_attn = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t)
-                _.adapter_mlp = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t)
-                _.s = s
-                _.t = t
-                _.gradient_checkpointing=gradient_checkpointing
-                if type(_) == lavin.eval_model.TransformerBlock:
-                    bound_method = forward_llama_block_cache.__get__(_, _.__class__)
-                else:
-                    bound_method = forward_llama_block.__get__(_, _.__class__)
-                if set_forward:
-                    setattr(_, 'forward', bound_method)
-            elif len(list(_.children())) != 0:
-                set_MMAdapter(_, method, dim, s,set_forward=set_forward,t=t,gradient_checkpointing=gradient_checkpointing)
-
-    else:
-        for _ in model.children():
-            if type(_) == lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
-                _.adapter_attn = RepAdapter_Router(_.dim,hidden_dim=dim,scale=s,t=t)
-                _.s = s
-                _.t=t
-                _.gradient_checkpointing = gradient_checkpointing
-                if type(_) == lavin.eval_model.TransformerBlock:
-                    bound_method = forward_llama_attn_cache.__get__(_, _.__class__)
-                else:
-                    bound_method = forward_llama_attn.__get__(_, _.__class__)
-                if set_forward:
-                    setattr(_, 'forward', bound_method)
-            elif len(list(_.children())) != 0:
-                set_MMAdapter(_, method, dim, s, set_forward=set_forward,t=t,gradient_checkpointing=gradient_checkpointing)
+                _.n_router=2
+            elif method=='router_plus':
+                _.adapter_attn = RepAdapter_Router_plus(_.dim,hidden_dim=dim,scale=s,t=t)
+                _.n_router = 2
+            _.s = s
+            _.t=t
+            _.gradient_checkpointing = gradient_checkpointing
+            if type(_) == lavin.eval_model.TransformerBlock:
+                bound_method = forward_llama_attn_cache.__get__(_, _.__class__)
+            else:
+                bound_method = forward_llama_attn.__get__(_, _.__class__)
+            if set_forward:
+                setattr(_, 'forward', bound_method)
+        elif len(list(_.children())) != 0:
+            set_MMAdapter(_, method, dim, s, set_forward=set_forward,t=t,gradient_checkpointing=gradient_checkpointing)
 
 
 from clip.model import ResidualAttentionBlock

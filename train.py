@@ -42,7 +42,7 @@ def get_args_parser():
     parser.add_argument('--cpu_load',  action='store_true',   help='load the model on cpu and avoid OOM on gpu')
 
     #block is not supported now.
-    parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['block','attn'],
+    parser.add_argument('--adapter_type', type=str, default='attn', metavar='LENGTH',choices=['router','router_plus'],
                         help='the insert position  of adapter layer')
 
 
@@ -129,6 +129,8 @@ def get_args_parser():
     parser.add_argument('--data_root', type=str, default='../data')
     parser.add_argument('--use_caption', action='store_true', help='use image captions or not')
     parser.add_argument('--do_pretrain', action='store_true', help='pre-train on large scale vl instruction')
+    parser.add_argument('--tuning_projector', action='store_true', help='only fine-tuning projector')
+    parser.add_argument('--load_projector', type=str,default=None, help='load pre-trained projector')
 
     return parser
 

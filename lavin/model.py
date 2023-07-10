@@ -194,6 +194,64 @@ class TransformerBlock(nn.Module):
         return out
 
 
+#
+# class AdapterMLP(nn.Module):
+#     """ Pytorch Implemention of RepAdapter for 1d tensor"""
+#
+#     def __init__(
+#             self,
+#             in_features=768,
+#             hidden_dim=128,
+#             out_features=4096
+#     ):
+#         super().__init__()
+#         self.conv_A=nn.Linear(in_features,hidden_dim)
+#         self.conv_B = nn.Linear(hidden_dim, out_features)
+#
+#
+#         nn.init.xavier_uniform_( self.conv_A.weight)
+#         nn.init.zeros_(self.conv_A.bias)
+#         nn.init.xavier_uniform_(self.conv_B.weight)
+#         nn.init.zeros_(self.conv_B.bias)
+#
+#     def forward(self, x):
+#         with autocast():
+#             x=self.conv_B(F.silu(self.conv_A(x)))
+#         return x
+
+
+class AdapterConv(nn.Module):
+    """ Pytorch Implemention of RepAdapter for 1d tensor"""
+
+    def __init__(
+            self,
+            in_features=768,
+            hidden_dim=128,
+            out_features=4096
+    ):
+        super().__init__()
+        self.conv_A=nn.Conv2d(in_features,in_features,7,padding=3,groups=in_features)
+        self.conv_B=nn.Conv2d(in_features,out_features,1)
+        # self.norms=RMSNorm(in_features)
+
+
+        nn.init.xavier_uniform_( self.conv_A.weight)
+        nn.init.zeros_(self.conv_A.bias)
+
+        nn.init.xavier_uniform_( self.conv_B.weight)
+        nn.init.zeros_(self.conv_B.bias)
+
+    def forward(self, x):
+        # x=self.norm(x)
+        #convert to 4d shape
+        b,l,c=x.shape
+        h=w=int(math.sqrt(l))
+        x=x.transpose(1,2).contiguous().view(b,c,h,w)
+        with autocast():
+            x=self.conv_B(F.silu(self.conv_A(x)))
+        x=x.view(b,-1,l).transpose(1,2)
+        return x
+
 
 class AdapterMLP(nn.Module):
     """ Pytorch Implemention of RepAdapter for 1d tensor"""
@@ -205,20 +263,16 @@ class AdapterMLP(nn.Module):
             out_features=4096
     ):
         super().__init__()
-        self.conv_A=nn.Linear(in_features,hidden_dim)
-        self.conv_B = nn.Linear(hidden_dim, out_features)
+        self.conv_A=nn.Linear(in_features,out_features)
 
 
         nn.init.xavier_uniform_( self.conv_A.weight)
         nn.init.zeros_(self.conv_A.bias)
-        nn.init.xavier_uniform_(self.conv_B.weight)
-        nn.init.zeros_(self.conv_B.bias)
 
     def forward(self, x):
         with autocast():
-            x=self.conv_B(F.silu(self.conv_A(x)))
+            x=self.conv_A(x)
         return x
-
 
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
@@ -251,7 +305,7 @@ class Transformer(nn.Module):
 
 
         #handcraft define self.backbone.visual.transformer.width
-        self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
+        self.adapter_proj = AdapterConv(1024*4, params.hidden_proj, params.dim).float()
         self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
 
 

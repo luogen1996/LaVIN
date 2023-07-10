@@ -1,0 +1,39 @@
+torchrun --nproc_per_node 8 --master_port 12345 --nproc_per_node 8 train.py \
+    --llm_model 7B\
+    --llama_model_path ../data/weights/ \
+    --data_path ../data/all_data.json \
+    --max_seq_len 768 \
+    --batch_size 8 \
+    --accum_iter 1 \
+    --epochs 15 \
+    --warmup_epochs 0.2 \
+    --blr 9e-3 \
+    --weight_decay 0.02 \
+    --output_dir ./LaVIN-7B-VLIT/\
+    --adapter_type router_plus\
+    --adapter_dim 8\
+    --adapter_scale 1\
+    --n_prompt 256 \
+    --prompt_format QCM-ALE \
+    --temperature 10.\
+    --visual_adapter_type router \
+    --do_pretrain \
+    --load_projector ./LaVIN-7B-gcc-ms/checkpoint-0.pth
+
+torchrun --nproc_per_node 1 --master_port 11345 eval_mme.py \
+    --ckpt_dir ../data/weights/ \
+    --llm_model 7B\
+    --tokenizer_path ../data/weights/tokenizer.model \
+    --data_root ../data \
+    --caption_file ../data/captions.json \
+    --adapter_path ./LaVIN-7B-VLIT/checkpoint-14.pth \
+    --adapter_type router_plus \
+    --adapter_dim 8 \
+    --adapter_scale 1 \
+    --prompt_format QCM-ALE \
+    --max_batch_size 50\
+    --max_seq_len 768 \
+    --split test \
+    --n_prompt 256 \
+    --temperature 10.\
+    --visual_adapter_type router

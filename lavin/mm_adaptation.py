@@ -110,15 +110,20 @@ def LaVIN(args):
     if args.use_vicuna:
         apply_model_delta_online(llama,'../data/weights/vicuna_'+args.llm_model)
 
-
-    if   args.adapter_type=='block' or  args.adapter_type=='attn':
+    if not args.tuning_projector:
         set_MMAdapter(llama,args.adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature,gradient_checkpointing=args.gradient_checkpointing)
         set_Clip_Adapter(llama.backbone.visual,args.visual_adapter_type,dim=args.adapter_dim,s=args.adapter_scale,t=args.temperature)
 
+    if args.load_projector is not None:
+        projector_checkpoint=torch.load(args.load_projector, map_location="cpu")
+        state_dict = {}
+        for key in projector_checkpoint['model']:
+            if 'adapter_proj' in key:
+                state_dict[key.replace('module.', '')] = projector_checkpoint['model'][key]
+        llama.load_state_dict(state_dict, strict=False)
 
 
-
-    learnable_keys=['adapter']
+    learnable_keys=['adapter'] if not args.tuning_projector else ['adapter_proj']
     total=0.
     trainable_names=[]
     for name, param in llama.named_parameters():

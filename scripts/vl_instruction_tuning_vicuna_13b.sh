@@ -10,7 +10,7 @@ torchrun --nproc_per_node 8 --master_port 12345 --nproc_per_node 8 train.py \
     --blr 9e-3 \
     --weight_decay 0.02 \
     --output_dir ./LaVIN-Vicuna-13B-VLIT/\
-    --adapter_type attn\
+    --adapter_type router\
     --adapter_dim 8\
     --adapter_scale 1\
     --n_prompt 6 \

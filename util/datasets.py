@@ -102,7 +102,7 @@ class InstrcutDataSet(Data.Dataset):
         # --------------------------
         # ---- Raw data loading ---
         # --------------------------
-        self.data = json.load(open(os.path.join(args.data_root, 'all_data.json')))[split]
+        self.data = json.load(open(os.path.join(args.data_path)))[split]
 
         self.tokenizer = Tokenizer(model_path=model_path + '/tokenizer.model')
         self.max_words = max_words
@@ -144,6 +144,8 @@ class InstrcutDataSet(Data.Dataset):
             # image_path='../data/images/train' if self.data[idx]['image_source']=='sqa' else '../data/images/train2014'
             if self.data[idx]['image_source'] == 'sqa':
                 image = Image.open(os.path.join('../data/images/train', self.qids[idx], 'image.png')).convert('RGB')
+            elif self.data[idx]['image_source'] == 'gcc':
+                image = Image.open(os.path.join('../data/images/gcc', self.data[idx]['image'])).convert('RGB')
             else:
                 image = Image.open(os.path.join('../data/images/train2014',   'COCO_train2014_'+self.data[idx]['image'])).convert('RGB')
             image = self.transforms(image)

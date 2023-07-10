@@ -223,6 +223,7 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x: torch.Tensor):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
+        b,c,h,w=x.shape
         x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
         x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
         x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)  # shape = [*, grid ** 2 + 1, width]
@@ -236,10 +237,15 @@ class VisionTransformer(nn.Module):
 
         x = x.permute(1, 0, 2)  # NLD -> LND
         ret_feats=[]
+        ret_grids=[]
         for i, layer in enumerate(self.transformer.resblocks):
             x=layer(x)
-            if (i+1)%4==0:
-                ret_feats.append(x.permute(1, 0, 2)[:,:1])
+            if (i+1)%6==0:
+                ret_feats.append(x.permute(1, 0, 2)[:, :1])
+                grid=x.permute(1, 0, 2)[:, 1:]
+                # grid=x.permute(1,2,0)[:,:,1:].contiguous().view(b,-1,h,w)
+                # grid=F.avg_pool2d(grid,2,2).view(b,c,-1).permute(0,2,1)
+                ret_grids.append(grid)
 
         # x = x.permute(1, 0, 2)  # LND -> NLD
         #
@@ -248,7 +254,7 @@ class VisionTransformer(nn.Module):
         # if self.proj is not None:
         #     x = x @ self.proj
 
-        return torch.cat(ret_feats,1)
+        return torch.cat(ret_grids,-1)
 
 
 class CLIP(nn.Module):

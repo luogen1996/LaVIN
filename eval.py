@@ -323,7 +323,7 @@ def main(
     prompt_format='QCM-ALE',
     use_caption=False,
     options=["A", "B", "C", "D", "E"],
-    adapter_type='repattn',
+    adapter_type='router',
     adapter_dim=8,
     adapter_scale=1,
     n_prompt=10,
