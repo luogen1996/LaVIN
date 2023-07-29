@@ -241,7 +241,7 @@ class Transformer(nn.Module):
 
         self.backbone = clip.load('ViT-L/14')[0]
 
-        self.adapter_proj = AdapterConv(1024*4, params.hidden_proj, params.dim).float()
+        self.adapter_proj = AdapterMLP(1024*4, params.hidden_proj, params.dim).float()
         self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
 
     @torch.inference_mode()

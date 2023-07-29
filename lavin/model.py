@@ -305,7 +305,7 @@ class Transformer(nn.Module):
 
 
         #handcraft define self.backbone.visual.transformer.width
-        self.adapter_proj = AdapterConv(1024*4, params.hidden_proj, params.dim).float()
+        self.adapter_proj = AdapterMLP(1024*4, params.hidden_proj, params.dim).float()
         self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
 
 

@@ -3,10 +3,9 @@ import sys
 from typing import Iterable
 
 import torch
-
+import torch.distributed as dist
 import util.misc as misc
 import util.lr_sched as lr_sched
-
 
 
 def train_one_epoch(model: torch.nn.Module,
@@ -14,7 +13,6 @@ def train_one_epoch(model: torch.nn.Module,
                     device: torch.device, epoch: int, loss_scaler,
                     log_writer=None,
                     args=None):
-  
     model.train(True)
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -28,32 +26,46 @@ def train_one_epoch(model: torch.nn.Module,
     if log_writer is not None:
         print('log_dir: {}'.format(log_writer.log_dir))
 
-
-
     prefix_img = torch.tensor(data_loader.dataset.tokenizer.encode("Image: ", bos=False, eos=False), dtype=torch.int64)
-    prefix_nonimg = torch.tensor(data_loader.dataset.tokenizer.encode("Image: N/A", bos=False, eos=False), dtype=torch.int64)
+    prefix_nonimg = torch.tensor(data_loader.dataset.tokenizer.encode("Image: N/A", bos=False, eos=False),
+                                 dtype=torch.int64)
 
-    for data_iter_step, (examples, labels, example_mask,images,indicators) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
+    for data_iter_step, (examples, labels, example_mask, images, indicators) in enumerate(
+            metric_logger.log_every(data_loader, print_freq, header)):
+
+
+
         # we use a per iteration (instead of per epoch) lr scheduler
+
         if data_iter_step % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, data_iter_step / len(data_loader) + epoch, args)
 
-        prefix_img=prefix_img.to(examples.device)
-        prefix_nonimg=prefix_nonimg.to(examples.device)
-        c_loss = model(examples, labels,images=images, prefix_img=prefix_img, prefix_nonimg=prefix_nonimg,img_indicators=indicators)
+        prefix_img = prefix_img.to(examples.device)
+        prefix_nonimg = prefix_nonimg.to(examples.device)
+
+
+        # print(examples.shape)
+        c_loss = model(examples, labels, images=images, prefix_img=prefix_img, prefix_nonimg=prefix_nonimg,
+                       img_indicators=indicators)
         loss = c_loss
         loss_value = loss.item()
         c_loss_value = c_loss.item()
 
-
-        if torch.isnan(loss):
+        # Check for NaN loss in all processes
+        nan_loss = torch.isnan(loss).to(torch.int32)
+        dist.all_reduce(nan_loss, op=dist.ReduceOp.MAX)
+        if nan_loss.item() > 0:
             print("NaN loss encountered. Skipping this batch.")
+            optimizer.zero_grad()
+            dist.barrier()
             continue
+            # optimizer.zero_grad()
+            # torch.cuda.synchronize()
 
-        loss = loss/accum_iter
+        loss = loss / accum_iter
 
         loss_scaler(loss, optimizer, parameters=model.parameters(),
-                    update_grad=(data_iter_step + 1) % accum_iter == 0,clip_grad=args.clip_grad)
+                    update_grad=(data_iter_step + 1) % accum_iter == 0, clip_grad=args.clip_grad)
         if (data_iter_step + 1) % accum_iter == 0:
             optimizer.zero_grad()
 
@@ -82,10 +94,10 @@ def train_one_epoch(model: torch.nn.Module,
 
 
 def val_one_epoch(model: torch.nn.Module,
-                    data_loader: Iterable, optimizer: torch.optim.Optimizer,
-                    device: torch.device, epoch: int, loss_scaler,
-                    log_writer=None,
-                    args=None):
+                  data_loader: Iterable, optimizer: torch.optim.Optimizer,
+                  device: torch.device, epoch: int, loss_scaler,
+                  log_writer=None,
+                  args=None):
     model.eval()
     metric_logger = misc.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', misc.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -96,10 +108,11 @@ def val_one_epoch(model: torch.nn.Module,
 
     if log_writer is not None:
         print('log_dir: {}'.format(log_writer.log_dir))
-    for data_iter_step, (examples, labels, example_mask) in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
+    for data_iter_step, (examples, labels, example_mask) in enumerate(
+            metric_logger.log_every(data_loader, print_freq, header)):
 
         with torch.no_grad():
-             c_loss  = model(examples, labels)
+            c_loss = model(examples, labels)
         loss = c_loss
         loss_value = loss.item()
 

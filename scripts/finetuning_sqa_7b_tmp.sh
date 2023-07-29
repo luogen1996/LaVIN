@@ -9,7 +9,7 @@ torchrun --nproc_per_node 8 --master_port 11111 train.py \
     --warmup_epochs 2 \
     --blr 9e-3 \
     --weight_decay 0.03 \
-    --output_dir ./LaVIN-7B-sqa-ms-3router/\
+    --output_dir ./LaVIN-7B-sqa-ms/\
     --adapter_type router_plus\
     --adapter_dim 8\
     --adapter_scale 1\

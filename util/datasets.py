@@ -47,6 +47,20 @@ class ScienceQADataSet(Data.Dataset):
 
         self.transforms=transforms.Compose([transforms.Resize((224, 224), interpolation=Image.BICUBIC),transforms.ToTensor(), transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)])
 
+
+    #     self.qids_img=[]
+    #     self.qids_text=[]
+    #     self.qid_full=self.qids
+    #     for qid in self.qids:
+    #         if self.problems[qid]['image'] is not None:
+    #             self.qids_img.append(qid)
+    #         else:
+    #             self.qids_text.append(qid)
+    #
+    # def set_img_only(self):
+    #     self.qids=self.qids_img
+    # def set_text_only(self):
+    #     self.qids=self.qids_text
     def tokenize(self,prompt,answer):
         example=prompt+answer
         # print(prompt)
@@ -105,7 +119,7 @@ class InstrcutDataSet(Data.Dataset):
         self.data = json.load(open(os.path.join(args.data_path)))[split]
 
         self.tokenizer = Tokenizer(model_path=model_path + '/tokenizer.model')
-        self.max_words = max_words
+        self.max_words = args.max_seq_len#max_words
         self.max_image_feats=max_image_feats
         self.split=split
         self.qids = [item['qid'] for item in self.data]
@@ -155,7 +169,7 @@ class InstrcutDataSet(Data.Dataset):
             indicator=0
 
         # print(prompt_question,prompt_answer)
-        example, labels, example_mask, label_mask=self.tokenize(prompt_question,prompt_answer)
+        example, labels, example_mask, label_mask=self.tokenize(prompt_question,prompt_answer,self.max_words)
 
         return example, labels, example_mask, image,indicator
 
