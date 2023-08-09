@@ -15,6 +15,8 @@ Particularly, MMA is an end-to-end optimization regime, which connects the image
 <img src="./assets/teaser.gif" width="95%">
 </div>
 
+## News 
+- We update the training and evaluation scripts  for COCO captioning, VQAv2, TruthfulQA and MME benchmark.
 
 ## Contents
 - [Setup](#setup)
