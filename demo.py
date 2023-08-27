@@ -22,9 +22,7 @@ from typing import Tuple
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Demo")
-    parser.add_argument(
-        "--server_name", type=str, default="127.0.0.1", help="server name"
-    )
+    parser.add_argument("--server_name", type=str, default="127.0.0.1", help="server name")
     parser.add_argument(
         "--ckpt_dir",
         type=str,
@@ -189,9 +187,7 @@ def gradio_answer(chatbot, chat_state, img_list, num_beams, temperature):
 
 
 title = """<h1 align="center">Demo of LaVIN</h1>"""
-description = (
-    """<h3>This is the demo of LaVIN. Upload your images and start chatting!</h3>"""
-)
+description = """<h3>This is the demo of LaVIN. Upload your images and start chatting!</h3>"""
 
 with gr.Blocks() as demo:
     gr.Markdown(title)
@@ -200,9 +196,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column(scale=0.5):
             image = gr.Image(type="pil")
-            upload_button = gr.Button(
-                value="Upload & Start Chat", interactive=True, variant="primary"
-            )
+            upload_button = gr.Button(value="Upload & Start Chat", interactive=True, variant="primary")
             clear = gr.Button("Restart")
 
             num_beams = gr.Slider(
@@ -227,9 +221,7 @@ with gr.Blocks() as demo:
             chat_state = gr.State()
             img_list = gr.State()
             chatbot = gr.Chatbot(label="LaVIN-13B")
-            text_input = gr.Textbox(
-                label="User", placeholder="Type and press Enter", interactive=True
-            )
+            text_input = gr.Textbox(label="User", placeholder="Type and press Enter", interactive=True)
 
     upload_button.click(
         upload_img,
@@ -237,9 +229,7 @@ with gr.Blocks() as demo:
         [image, text_input, upload_button, chat_state, img_list],
     )
 
-    text_input.submit(
-        gradio_ask, [text_input, chatbot, chat_state], [text_input, chatbot, chat_state]
-    ).then(
+    text_input.submit(gradio_ask, [text_input, chatbot, chat_state], [text_input, chatbot, chat_state]).then(
         gradio_answer,
         [chatbot, chat_state, img_list, num_beams, temperature],
         [chatbot, chat_state, img_list],

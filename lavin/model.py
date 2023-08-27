@@ -159,15 +159,11 @@ class TransformerBlock(nn.Module):
         self.dim = args.dim
         self.head_dim = args.dim // args.n_heads
         self.attention = Attention(args)
-        self.feed_forward = FeedForward(
-            dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of
-        )
+        self.feed_forward = FeedForward(dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of)
         self.layer_id = layer_id
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
-        self.drop_path = (
-            DropPath(args.drop_path) if args.drop_path > 0.0 else nn.Identity()
-        )
+        self.drop_path = DropPath(args.drop_path) if args.drop_path > 0.0 else nn.Identity()
 
     def forward(
         self,
@@ -177,11 +173,7 @@ class TransformerBlock(nn.Module):
         mask: Optional[torch.Tensor],
         adapter=None,
     ):
-        h = x + self.drop_path(
-            self.attention.forward(
-                self.attention_norm(x), start_pos, freqs_cis, mask, adapter
-            )
-        )
+        h = x + self.drop_path(self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter))
         out = h + self.drop_path(self.feed_forward.forward(self.ffn_norm(h)))
         return out
 
@@ -223,9 +215,7 @@ class Transformer(nn.Module):
         self.norm = RMSNorm(params.dim, eps=params.norm_eps)
         self.output = Linear(params.dim, params.vocab_size, bias=False)
 
-        self.freqs_cis = precompute_freqs_cis(
-            self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
-        )
+        self.freqs_cis = precompute_freqs_cis(self.params.dim // self.params.n_heads, self.params.max_seq_len * 2)
 
         self.backbone = clip.load("ViT-L/14")[0]
 
@@ -233,23 +223,17 @@ class Transformer(nn.Module):
         self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
         self.adapter_modality_embedding = nn.Embedding(2, params.dim).float()
 
-    def insert_image_embeds(
-        self, examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators
-    ):
+    def insert_image_embeds(self, examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators):
         _bsz, seqlen, _ = examples.shape
         new_examples = []
         new_labels = []
         for i, (example, label) in enumerate(zip(examples, labels)):
             if img_indicators[i] > 0.0:
-                new_example = torch.cat(
-                    [example[:1], prefix_img, image_embeds[i], example[1:]], 0
-                )
+                new_example = torch.cat([example[:1], prefix_img, image_embeds[i], example[1:]], 0)
                 new_label = torch.cat(
                     [
                         label[:1],
-                        torch.zeros(prefix_img.shape[0] + image_embeds.shape[1])
-                        .to(examples.device)
-                        .type_as(labels),
+                        torch.zeros(prefix_img.shape[0] + image_embeds.shape[1]).to(examples.device).type_as(labels),
                         label[1:],
                     ]
                 )
@@ -260,9 +244,7 @@ class Transformer(nn.Module):
                 new_label = torch.cat(
                     [
                         label[:1],
-                        torch.zeros(prefix_nonimg.shape[0])
-                        .to(examples.device)
-                        .type_as(labels),
+                        torch.zeros(prefix_nonimg.shape[0]).to(examples.device).type_as(labels),
                         label[1:],
                     ]
                 )
@@ -302,9 +284,7 @@ class Transformer(nn.Module):
         prefix_img = self.tok_embeddings(prefix_img.unsqueeze(0)).squeeze(0)
         prefix_nonimg = self.tok_embeddings(prefix_nonimg.unsqueeze(0)).squeeze(0)
 
-        h, labels = self.insert_image_embeds(
-            examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators
-        )
+        h, labels = self.insert_image_embeds(examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators)
 
         h = torch.cat([modality_embed.half(), h], 1)[:, :seqlen]
         modality_labels = torch.zeros(_bsz, 1).to(labels.device).type_as(labels)

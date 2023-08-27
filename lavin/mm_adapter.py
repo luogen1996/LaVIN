@@ -34,9 +34,7 @@ class RepAdapter_Router(nn.Module):
     def forward(self, x, weights=None):
         with autocast():
             if weights is None:
-                weights = torch.softmax(
-                    self.expert_weights(x[:, 0]) / self.t, -1
-                ).half()
+                weights = torch.softmax(self.expert_weights(x[:, 0]) / self.t, -1).half()
             x = x.transpose(1, 2)
             x_ = self.dropout(self.conv_A(x))
             x = (
@@ -95,9 +93,7 @@ def forward_llama_block(
             )
         )
         out = h + self.drop_path(
-            torch.utils.checkpoint.checkpoint(
-                self.feed_forward, self.adapter_mlp(self.ffn_norm(h))
-            )
+            torch.utils.checkpoint.checkpoint(self.feed_forward, self.adapter_mlp(self.ffn_norm(h)))
         )
     else:
         h = x + self.drop_path(
@@ -109,9 +105,7 @@ def forward_llama_block(
                 adapter,
             )
         )
-        out = h + self.drop_path(
-            self.feed_forward.forward(self.adapter_mlp(self.ffn_norm(h)))
-        )
+        out = h + self.drop_path(self.feed_forward.forward(self.adapter_mlp(self.ffn_norm(h))))
     return out
 
 
@@ -133,9 +127,7 @@ def forward_llama_attn(
                 mask,
             )
         )
-        out = h + self.drop_path(
-            torch.utils.checkpoint.checkpoint(self.feed_forward, self.ffn_norm(h))
-        )
+        out = h + self.drop_path(torch.utils.checkpoint.checkpoint(self.feed_forward, self.ffn_norm(h)))
     else:
         h = x + self.drop_path(
             self.attention.forward(
@@ -161,8 +153,7 @@ def forward_llama_attn_cache(
     bs_ = x.shape[0]
     if start_pos == 0:
         self.cache_weights[:bs_] = torch.softmax(
-            self.adapter_attn.expert_weights(self.attention_norm(x)[:, 0].float())
-            / self.t,
+            self.adapter_attn.expert_weights(self.attention_norm(x)[:, 0].float()) / self.t,
             -1,
         ).half()
     h = x + self.drop_path(
@@ -189,8 +180,7 @@ def forward_llama_block_cache(
     bs_ = x.shape[0]
     if start_pos == 0:
         self.cache_weights[:bs_] = torch.softmax(
-            self.adapter_attn.expert_weights(self.attention_norm(x)[:, 0].float())
-            / self.t,
+            self.adapter_attn.expert_weights(self.attention_norm(x)[:, 0].float()) / self.t,
             -1,
         ).half()
         self.cache_weights_ffn[:bs_] = torch.softmax(
@@ -206,9 +196,7 @@ def forward_llama_block_cache(
         )
     )
     out = h + self.drop_path(
-        self.feed_forward.forward(
-            self.adapter_mlp(self.ffn_norm(h), self.cache_weights_ffn[:bs_])
-        )
+        self.feed_forward.forward(self.adapter_mlp(self.ffn_norm(h), self.cache_weights_ffn[:bs_]))
     )
     return out
 
@@ -225,17 +213,12 @@ def forward_clip_full(self, x: torch.Tensor):
     return x
 
 
-def set_MMAdapter(
-    model, method, dim=8, s=1, set_forward=True, t=10, gradient_checkpointing=False
-):
+def set_MMAdapter(model, method, dim=8, s=1, set_forward=True, t=10, gradient_checkpointing=False):
     if method == "block":
         # not support right now
         assert NotImplementedError
         for _ in model.children():
-            if (
-                type(_) == lavin.model.TransformerBlock
-                or type(_) == lavin.eval_model.TransformerBlock
-            ):
+            if type(_) == lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
                 _.adapter_attn = RepAdapter_Router(_.dim, hidden_dim=dim, scale=s, t=t)
                 _.adapter_mlp = RepAdapter_Router(_.dim, hidden_dim=dim, scale=s, t=t)
                 _.s = s
@@ -260,10 +243,7 @@ def set_MMAdapter(
 
     else:
         for _ in model.children():
-            if (
-                type(_) == lavin.model.TransformerBlock
-                or type(_) == lavin.eval_model.TransformerBlock
-            ):
+            if type(_) == lavin.model.TransformerBlock or type(_) == lavin.eval_model.TransformerBlock:
                 _.adapter_attn = RepAdapter_Router(_.dim, hidden_dim=dim, scale=s, t=t)
                 _.s = s
                 _.t = t

@@ -61,12 +61,8 @@ class ScienceQADataSet(Data.Dataset):
     def tokenize(self, prompt, answer):
         example = prompt + answer
         # print(prompt)
-        prompt = torch.tensor(
-            self.tokenizer.encode(prompt, bos=True, eos=False), dtype=torch.int64
-        )
-        example = torch.tensor(
-            self.tokenizer.encode(example, bos=True, eos=True), dtype=torch.int64
-        )
+        prompt = torch.tensor(self.tokenizer.encode(prompt, bos=True, eos=False), dtype=torch.int64)
+        example = torch.tensor(self.tokenizer.encode(example, bos=True, eos=True), dtype=torch.int64)
         padding = self.max_words - example.shape[0]
         if padding > 0:
             example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
@@ -83,9 +79,7 @@ class ScienceQADataSet(Data.Dataset):
         return example, labels, example_mask, label_mask
 
     def __getitem__(self, idx):
-        prompt_question, prompt_answer = build_prompt(
-            self.problems, self.qids[idx], self.args
-        )
+        prompt_question, prompt_answer = build_prompt(self.problems, self.qids[idx], self.args)
         answer, choices, qid = (
             self.problems[self.qids[idx]]["answer"],
             self.problems[self.qids[idx]]["choices"],
@@ -93,9 +87,7 @@ class ScienceQADataSet(Data.Dataset):
         )
 
         if self.problems[self.qids[idx]]["image"] is not None:
-            image = Image.open(
-                os.path.join(self.image_path, self.qids[idx], "image.png")
-            ).convert("RGB")
+            image = Image.open(os.path.join(self.image_path, self.qids[idx], "image.png")).convert("RGB")
             image = self.transforms(image)
             image_mask = torch.cat(
                 [
@@ -109,9 +101,7 @@ class ScienceQADataSet(Data.Dataset):
             image_mask = torch.zeros(self.max_words + self.max_image_feats)
             indicator = 0
 
-        example, labels, example_mask, label_mask = self.tokenize(
-            prompt_question, prompt_answer
-        )
+        example, labels, example_mask, label_mask = self.tokenize(prompt_question, prompt_answer)
 
         return example, labels, example_mask, image, indicator
 
@@ -129,9 +119,7 @@ class InstrcutDataSet(Data.Dataset):
         # --------------------------
         # ---- Raw data loading ---
         # --------------------------
-        self.data = json.load(open(os.path.join(args.data_root, "all_data.json")))[
-            split
-        ]
+        self.data = json.load(open(os.path.join(args.data_root, "all_data.json")))[split]
 
         self.tokenizer = Tokenizer(model_path=model_path + "/tokenizer.model")
         self.max_words = max_words
@@ -152,12 +140,8 @@ class InstrcutDataSet(Data.Dataset):
     def tokenize(self, prompt, answer, max_words=512):
         example = prompt + answer
         # print(prompt)
-        prompt = torch.tensor(
-            self.tokenizer.encode(prompt, bos=True, eos=False), dtype=torch.int64
-        )
-        example = torch.tensor(
-            self.tokenizer.encode(example, bos=True, eos=True), dtype=torch.int64
-        )
+        prompt = torch.tensor(self.tokenizer.encode(prompt, bos=True, eos=False), dtype=torch.int64)
+        example = torch.tensor(self.tokenizer.encode(example, bos=True, eos=True), dtype=torch.int64)
         padding = max_words - example.shape[0]
         if padding > 0:
             example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
@@ -180,9 +164,7 @@ class InstrcutDataSet(Data.Dataset):
         if self.data[idx]["image"] is not None:
             # image_path='../data/images/train' if self.data[idx]['image_source']=='sqa' else '../data/images/train2014'
             if self.data[idx]["image_source"] == "sqa":
-                image = Image.open(
-                    os.path.join("../data/images/train", self.qids[idx], "image.png")
-                ).convert("RGB")
+                image = Image.open(os.path.join("../data/images/train", self.qids[idx], "image.png")).convert("RGB")
             else:
                 image = Image.open(
                     os.path.join(
@@ -197,9 +179,7 @@ class InstrcutDataSet(Data.Dataset):
             indicator = 0
 
         # print(prompt_question,prompt_answer)
-        example, labels, example_mask, label_mask = self.tokenize(
-            prompt_question, prompt_answer
-        )
+        example, labels, example_mask, label_mask = self.tokenize(prompt_question, prompt_answer)
 
         return example, labels, example_mask, image, indicator
 

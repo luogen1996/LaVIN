@@ -110,12 +110,8 @@ def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
                 gc.collect()
             torch.save(state_dict, os.path.join(target_model_path, file_name))
 
-        with open(
-            os.path.join(target_model_path, "pytorch_model.bin.index.json"), "w"
-        ) as f:
-            json.dump(
-                {"weight_map": weight_map, "metadata": {"total_size": total_size}}, f
-            )
+        with open(os.path.join(target_model_path, "pytorch_model.bin.index.json"), "w") as f:
+            json.dump({"weight_map": weight_map, "metadata": {"total_size": total_size}}, f)
 
     print(f"Saving the target model to {target_model_path}")
     delta_tokenizer.save_pretrained(target_model_path)
@@ -125,14 +121,10 @@ def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
 def apply_delta(base_model_path, target_model_path, delta_path):
     print(f"Loading the delta weights from {delta_path}")
     delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
-    delta = AutoModelForCausalLM.from_pretrained(
-        delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    delta = AutoModelForCausalLM.from_pretrained(delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
     print(f"Loading the base model from {base_model_path}")
-    base = AutoModelForCausalLM.from_pretrained(
-        base_model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    base = AutoModelForCausalLM.from_pretrained(base_model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
     print("Applying the delta")
     for name, param in tqdm(base.state_dict().items(), desc="Applying delta"):
@@ -206,9 +198,7 @@ def llama2huggingface(key):
 def apply_model_delta_online(base_model, delta_path):
     print(f"Loading the delta weights from {delta_path}")
     # delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
-    delta = AutoModelForCausalLM.from_pretrained(
-        delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    delta = AutoModelForCausalLM.from_pretrained(delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
     candidate_weight = set()
     exclude_weight = []
@@ -223,9 +213,7 @@ def apply_model_delta_online(base_model, delta_path):
     for name, param in base_model.named_parameters():
         if name in candidate_weight:
             assert llama2huggingface(name) in delta.state_dict()
-            param.data += delta.state_dict()[llama2huggingface(name)].to(
-                param.data.device
-            )
+            param.data += delta.state_dict()[llama2huggingface(name)].to(param.data.device)
 
 
 if __name__ == "__main__":
@@ -242,8 +230,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.low_cpu_mem:
-        apply_delta_low_cpu_mem(
-            args.base_model_path, args.target_model_path, args.delta_path
-        )
+        apply_delta_low_cpu_mem(args.base_model_path, args.target_model_path, args.delta_path)
     else:
         apply_delta(args.base_model_path, args.target_model_path, args.delta_path)

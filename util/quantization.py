@@ -34,9 +34,7 @@ def _replace_with_bnb_linear(
             or isinstance(module, RowParallelLinear)
         ) and name not in modules_to_not_convert:
             # Check if the current key is not in the `modules_to_not_convert`
-            if not any(
-                key in ".".join(current_key_name) for key in modules_to_not_convert
-            ):
+            if not any(key in ".".join(current_key_name) for key in modules_to_not_convert):
                 # with init_empty_weights():
                 if quantization_config.quantization_method() == "llm_int8":
                     model._modules[name] = bnb.nn.Linear8bitLt(
@@ -78,9 +76,7 @@ def _replace_with_bnb_linear(
     return model, has_been_replaced
 
 
-def quant_model_bnb(
-    model, quant_bit="4bit", keep_in_fp32_modules=[], quantization_config=None
-):
+def quant_model_bnb(model, quant_bit="4bit", keep_in_fp32_modules=[], quantization_config=None):
     if quantization_config is None:
         # set default quantization config
         # compute_dtype = (torch.float16 if args.fp16 else (torch.bfloat16 if args.bf16 else torch.float32))

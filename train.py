@@ -43,9 +43,7 @@ def get_args_parser():
     )
 
     # Model parameters
-    parser.add_argument(
-        "--llama_model_path", default="./llama", type=str, help="path of llama model"
-    )
+    parser.add_argument("--llama_model_path", default="./llama", type=str, help="path of llama model")
 
     parser.add_argument(
         "--llm_model",
@@ -120,9 +118,7 @@ def get_args_parser():
         metavar="LENGTH",
         help="the scales of adapter layer",
     )
-    parser.add_argument(
-        "--drop_path", type=float, default=0.0, metavar="LENGTH", help="drop path"
-    )
+    parser.add_argument("--drop_path", type=float, default=0.0, metavar="LENGTH", help="drop path")
 
     parser.add_argument(
         "--max_seq_len",
@@ -133,9 +129,7 @@ def get_args_parser():
     )
 
     # Optimizer parameters
-    parser.add_argument(
-        "--weight_decay", type=float, default=0.05, help="weight decay (default: 0.05)"
-    )
+    parser.add_argument("--weight_decay", type=float, default=0.05, help="weight decay (default: 0.05)")
 
     parser.add_argument(
         "--lr",
@@ -180,27 +174,19 @@ def get_args_parser():
     )
 
     # Dataset parameters
-    parser.add_argument(
-        "--data_path", default="/instruction_dataset/", type=str, help="dataset path"
-    )
+    parser.add_argument("--data_path", default="/instruction_dataset/", type=str, help="dataset path")
 
     parser.add_argument(
         "--output_dir",
         default="./output_dir",
         help="path where to save, empty for no saving",
     )
-    parser.add_argument(
-        "--log_dir", default="./output_dir", help="path where to tensorboard log"
-    )
-    parser.add_argument(
-        "--device", default="cuda", help="device to use for training / testing"
-    )
+    parser.add_argument("--log_dir", default="./output_dir", help="path where to tensorboard log")
+    parser.add_argument("--device", default="cuda", help="device to use for training / testing")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume", default="", help="resume from checkpoint")
 
-    parser.add_argument(
-        "--start_epoch", default=0, type=int, metavar="N", help="start epoch"
-    )
+    parser.add_argument("--start_epoch", default=0, type=int, metavar="N", help="start epoch")
     parser.add_argument("--num_workers", default=10, type=int)
     parser.add_argument(
         "--pin_mem",
@@ -211,14 +197,10 @@ def get_args_parser():
     parser.set_defaults(pin_mem=True)
 
     # distributed training parameters
-    parser.add_argument(
-        "--world_size", default=1, type=int, help="number of distributed processes"
-    )
+    parser.add_argument("--world_size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--local_rank", default=-1, type=int)
     parser.add_argument("--dist_on_itp", action="store_true")
-    parser.add_argument(
-        "--dist_url", default="env://", help="url used to set up distributed training"
-    )
+    parser.add_argument("--dist_url", default="env://", help="url used to set up distributed training")
 
     # datasets
     parser.add_argument(
@@ -255,9 +237,7 @@ def get_args_parser():
     parser.add_argument("--options", type=list, default=["A", "B", "C", "D", "E"])
     parser.add_argument("--caption_file", type=str, default="../data/captions.json")
     parser.add_argument("--data_root", type=str, default="../data")
-    parser.add_argument(
-        "--use_caption", action="store_true", help="use image captions or not"
-    )
+    parser.add_argument("--use_caption", action="store_true", help="use image captions or not")
     parser.add_argument(
         "--do_pretrain",
         action="store_true",
@@ -283,13 +263,9 @@ def main(args):
     cudnn.benchmark = True
 
     if args.do_pretrain:
-        dataset_train = InstrcutDataSet(
-            args, "all", args.llama_model_path, args.max_seq_len
-        )
+        dataset_train = InstrcutDataSet(args, "all", args.llama_model_path, args.max_seq_len)
     else:
-        dataset_train = ScienceQADataSet(
-            args, "train", args.llama_model_path, args.max_seq_len
-        )
+        dataset_train = ScienceQADataSet(args, "train", args.llama_model_path, args.max_seq_len)
 
     print(dataset_train)
 
@@ -343,15 +319,11 @@ def main(args):
 
     if args.distributed:
         print(args.gpu)
-        model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[args.gpu], find_unused_parameters=True
-        )
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
         model_without_ddp = model.module
 
     # following timm: set wd as 0 for bias and norm layers
-    param_groups = optim_factory.param_groups_weight_decay(
-        model_without_ddp, args.weight_decay
-    )
+    param_groups = optim_factory.param_groups_weight_decay(model_without_ddp, args.weight_decay)
 
     # following qlora: apply paged optimizer
     optimizer = bnb.optim.AdamW32bit(
@@ -404,9 +376,7 @@ def main(args):
         if args.output_dir and misc.is_main_process():
             if log_writer is not None:
                 log_writer.flush()
-            with open(
-                os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8"
-            ) as f:
+            with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
     total_time = time.time() - start_time

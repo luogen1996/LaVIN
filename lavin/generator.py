@@ -16,16 +16,12 @@ class LaVIN_Generator:
         self.tokenizer = tokenizer
         # self.backbone = clip.load('ViT-B/16', device='cpu')[0]
 
-    def insert_image_embeds(
-        self, examples, image_embeds, prefix_img, prefix_nonimg, img_indicators
-    ):
+    def insert_image_embeds(self, examples, image_embeds, prefix_img, prefix_nonimg, img_indicators):
         _bsz, seqlen, _ = examples.shape
         new_examples = []
         for i, example in enumerate(examples):
             if img_indicators[i] > 0.0:
-                new_example = torch.cat(
-                    [example[:1], prefix_img, image_embeds[i], example[1:]], 0
-                )
+                new_example = torch.cat([example[:1], prefix_img, image_embeds[i], example[1:]], 0)
                 new_example = new_example[:seqlen]
             else:
                 new_example = torch.cat([example[:1], prefix_nonimg, example[1:]], 0)
@@ -62,15 +58,9 @@ class LaVIN_Generator:
         prompt_tokens = []
         for i, x in enumerate(prompts):
             if indicators[i] == 1:
-                token_idx = (
-                    prefix_img_token
-                    + [0] * n_feats
-                    + self.tokenizer.encode(x, bos=False, eos=False)
-                )
+                token_idx = prefix_img_token + [0] * n_feats + self.tokenizer.encode(x, bos=False, eos=False)
             else:
-                token_idx = non_prefix_img_token + self.tokenizer.encode(
-                    x, bos=False, eos=False
-                )
+                token_idx = non_prefix_img_token + self.tokenizer.encode(x, bos=False, eos=False)
             prompt_tokens.append(token_idx)
 
         min_prompt_size = min([len(t) for t in prompt_tokens])
@@ -88,9 +78,7 @@ class LaVIN_Generator:
 
         token_embeds = self.model.tok_embeddings(tokens)
         indicators = torch.Tensor(indicators).cuda().long()
-        modality_embedding = self.model.adapter_modality_embedding(
-            indicators
-        ).unsqueeze(1)
+        modality_embedding = self.model.adapter_modality_embedding(indicators).unsqueeze(1)
 
         for i in range(len(token_embeds)):
             if indicators[i] == 1:
@@ -110,9 +98,7 @@ class LaVIN_Generator:
         prev_pos = 0
         for cur_pos in range(start_pos, total_len):
             if prev_pos == 0:
-                h = torch.cat(
-                    [modality_embedding, token_embeds[:, prev_pos:cur_pos]], 1
-                )
+                h = torch.cat([modality_embedding, token_embeds[:, prev_pos:cur_pos]], 1)
             else:
                 h = token_embeds[:, prev_pos:cur_pos]
             logits = self.model.forward(h, prev_pos)
@@ -131,9 +117,7 @@ class LaVIN_Generator:
             )
             token_embeds[:, cur_pos] = next_token_embeds
 
-            next_token = torch.where(
-                input_text_mask[:, cur_pos], tokens[:, cur_pos], next_token
-            )
+            next_token = torch.where(input_text_mask[:, cur_pos], tokens[:, cur_pos], next_token)
             tokens[:, cur_pos] = next_token
 
             prev_pos = cur_pos

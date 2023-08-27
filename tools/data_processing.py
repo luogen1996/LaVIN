@@ -14,9 +14,7 @@ for i, item in enumerate(alpaca_data):
     input = item["input"]
     if len(input) == 0:
         input = ""
-    data["instruction"] = (
-        "Instruction: " + item["instruction"] + " " + input + "\n" + "Response: "
-    )
+    data["instruction"] = "Instruction: " + item["instruction"] + " " + input + "\n" + "Response: "
     data["instruction"] = data["instruction"].replace("  ", " ").strip()
     data["answer"] = item["output"]
     data["image"] = None
@@ -37,9 +35,7 @@ for i, item in enumerate(gpt4_data):
     data = {}
     data["instruction"] = (
         "Instruction: "
-        + item["conversations"][0]["value"]
-        .replace("<image>\n", "")
-        .replace("\n<image>", "")
+        + item["conversations"][0]["value"].replace("<image>\n", "").replace("\n<image>", "")
         + "\n"
         + "Response: "
     )
@@ -57,9 +53,7 @@ for i, item in enumerate(gpt4_data_2):
         data = {}
         data["instruction"] = (
             "Instruction: "
-            + item["conversations"][j]["value"]
-            .replace("<image>\n", "")
-            .replace("\n<image>", "")
+            + item["conversations"][j]["value"].replace("<image>\n", "").replace("\n<image>", "")
             + "\n"
             + "Response: "
         )

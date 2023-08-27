@@ -38,9 +38,7 @@ def get_solution_text(problem):
     return solution
 
 
-def create_one_example(
-    format, question, context, choice, answer, lecture, solution, test_example=True
-):
+def create_one_example(format, question, context, choice, answer, lecture, solution, test_example=True):
     input_format, output_format = format.split("-")
 
     ## Inputs
@@ -94,9 +92,7 @@ def create_one_example(
     return text
 
 
-def create_training_example(
-    format, question, context, choice, answer, lecture, solution
-):
+def create_training_example(format, question, context, choice, answer, lecture, solution):
     input_format, output_format = format.split("-")
 
     ## Inputs
@@ -212,7 +208,5 @@ def build_prompt(problems, test_qid, args):
     lecture = get_lecture_text(problems[test_qid])
     solution = get_solution_text(problems[test_qid])
 
-    test_example = create_training_example(
-        args.prompt_format, question, context, choice, answer, lecture, solution
-    )
+    test_example = create_training_example(args.prompt_format, question, context, choice, answer, lecture, solution)
     return test_example

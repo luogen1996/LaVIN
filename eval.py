@@ -61,9 +61,7 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
     tokenizer = Tokenizer(model_path=str(Path(llama_model_path) / "tokenizer.model"))
     print("Using model path: %s, model_name: %s" % (llama_model_path, model_name))
     if model_name == "7B":
-        checkpoint = torch.load(
-            llama_model_path + model_name + "/consolidated.00.pth", map_location="cpu"
-        )
+        checkpoint = torch.load(llama_model_path + model_name + "/consolidated.00.pth", map_location="cpu")
         return checkpoint, tokenizer, params
 
     checkpoints = (Path(llama_model_path) / model_name).glob("*.pth")
@@ -74,15 +72,10 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
     if mp_world_size == len(checkpoints):
         print("same number of shards of checkpoints and training, loading directly...")
         dist.barrier()
-        print(
-            "[rank=%d, mp_rank=%d] loading from %s"
-            % (dist.get_rank(), mp_rank, checkpoints[mp_rank])
-        )
+        print("[rank=%d, mp_rank=%d] loading from %s" % (dist.get_rank(), mp_rank, checkpoints[mp_rank]))
         checkpoint = torch.load(checkpoints[mp_rank], map_location="cpu")
     else:
-        print(
-            "different number of shards of checkpoints and training, redistributing..."
-        )
+        print("different number of shards of checkpoints and training, redistributing...")
         if dist.get_rank() == 0:
             loaded = []
             for x in checkpoints:
@@ -96,9 +89,7 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
                 if dim < 0:  # bcast without split
                     full_state_dict[name] = loaded[0][name].clone()
                 else:
-                    full_state_dict[name] = torch.cat(
-                        [x[name] for x in loaded], dim=dim
-                    )
+                    full_state_dict[name] = torch.cat([x[name] for x in loaded], dim=dim)
                 for x in loaded:
                     del x[name]
                 split_dims[name] = dim
@@ -131,9 +122,7 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
                 for key in row_parallel_names:
                     add_weight_with_split_dim(layer_prefix + key, 1)
 
-            full_state_dict_meta = dict(
-                (k, v.shape) for k, v in full_state_dict.items()
-            )
+            full_state_dict_meta = dict((k, v.shape) for k, v in full_state_dict.items())
             dist.broadcast_object_list([full_state_dict_meta, split_dims], src=0)
 
         else:  # dist.get_rank() != 0
@@ -148,20 +137,14 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
                 value = full_state_dict[k].cuda().half()
                 del full_state_dict[k]
             else:
-                value = torch.empty(
-                    full_state_dict_meta[k], device="cuda", dtype=torch.half
-                )
+                value = torch.empty(full_state_dict_meta[k], device="cuda", dtype=torch.half)
             dist.broadcast(value, src=0)
             value = value.cpu()
             if split_dims[k] < 0:
                 local_state_dict[k] = value
             else:
                 dim = split_dims[k]
-                assert (
-                    dim >= 0
-                    and dim < value.ndim
-                    and value.size(dim) % mp_world_size == 0
-                )
+                assert dim >= 0 and dim < value.ndim and value.size(dim) % mp_world_size == 0
                 shard_size = value.size(dim) // mp_world_size
                 shard_st, shard_ed = shard_size * mp_rank, shard_size * (mp_rank + 1)
                 # TODO: make more general
@@ -202,14 +185,10 @@ def get_scores(result_file, data_file):
 
     # update data
     for index, row in res_pd.iterrows():
-        res_pd.loc[index, "no_context"] = (
-            True if (not row["hint"] and not row["image"]) else False
-        )
+        res_pd.loc[index, "no_context"] = True if (not row["hint"] and not row["image"]) else False
         res_pd.loc[index, "has_text"] = True if row["hint"] else False
         res_pd.loc[index, "has_image"] = True if row["image"] else False
-        res_pd.loc[index, "has_text_image"] = (
-            True if (row["hint"] and row["image"]) else False
-        )
+        res_pd.loc[index, "has_text_image"] = True if (row["hint"] and row["image"]) else False
 
         label = row["answer"]
         pred = int(results[index])
@@ -271,9 +250,7 @@ def load(
     cpu_load: bool = False,
 ) -> LaVIN_Generator:
     start_time = time.time()
-    checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(
-        ckpt_dir, llm_model
-    )
+    checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(ckpt_dir, llm_model)
 
     print("Loading")
     adapter_checkpoint = torch.load(adapter_path, map_location="cpu")
@@ -434,9 +411,7 @@ def main(
 
             answer = problems[qid]["answer"]
             if problems[qid]["image"] is not None:
-                image = Image.open(os.path.join(image_path, qid, "image.png")).convert(
-                    "RGB"
-                )
+                image = Image.open(os.path.join(image_path, qid, "image.png")).convert("RGB")
                 image = image_transforms(image)
                 indicator = 1
             else:
@@ -472,9 +447,7 @@ def main(
     results = {}
     correct = 0
     for i, prediction in enumerate(preds):
-        pred_idx = get_pred_idx(
-            prediction, problems[qids[i]]["choices"], prompt_args.options
-        )  # 0, 1, ..., 4
+        pred_idx = get_pred_idx(prediction, problems[qids[i]]["choices"], prompt_args.options)  # 0, 1, ..., 4
         if pred_idx == answers[i]:
             correct += 1
         results[qids[i]] = pred_idx

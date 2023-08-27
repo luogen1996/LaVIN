@@ -69,13 +69,9 @@ class Bottleneck(nn.Module):
 
 
 class AttentionPool2d(nn.Module):
-    def __init__(
-        self, spacial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None
-    ):
+    def __init__(self, spacial_dim: int, embed_dim: int, num_heads: int, output_dim: int = None):
         super().__init__()
-        self.positional_embedding = nn.Parameter(
-            torch.randn(spacial_dim**2 + 1, embed_dim) / embed_dim**0.5
-        )
+        self.positional_embedding = nn.Parameter(torch.randn(spacial_dim**2 + 1, embed_dim) / embed_dim**0.5)
         self.k_proj = nn.Linear(embed_dim, embed_dim)
         self.q_proj = nn.Linear(embed_dim, embed_dim)
         self.v_proj = nn.Linear(embed_dim, embed_dim)
@@ -96,9 +92,7 @@ class AttentionPool2d(nn.Module):
             k_proj_weight=self.k_proj.weight,
             v_proj_weight=self.v_proj.weight,
             in_proj_weight=None,
-            in_proj_bias=torch.cat(
-                [self.q_proj.bias, self.k_proj.bias, self.v_proj.bias]
-            ),
+            in_proj_bias=torch.cat([self.q_proj.bias, self.k_proj.bias, self.v_proj.bias]),
             bias_k=None,
             bias_v=None,
             add_zero_attn=False,
@@ -126,14 +120,10 @@ class ModifiedResNet(nn.Module):
         self.input_resolution = input_resolution
 
         # the 3-layer stem
-        self.conv1 = nn.Conv2d(
-            3, width // 2, kernel_size=3, stride=2, padding=1, bias=False
-        )
+        self.conv1 = nn.Conv2d(3, width // 2, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(width // 2)
         self.relu1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(
-            width // 2, width // 2, kernel_size=3, padding=1, bias=False
-        )
+        self.conv2 = nn.Conv2d(width // 2, width // 2, kernel_size=3, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(width // 2)
         self.relu2 = nn.ReLU(inplace=True)
         self.conv3 = nn.Conv2d(width // 2, width, kernel_size=3, padding=1, bias=False)
@@ -149,9 +139,7 @@ class ModifiedResNet(nn.Module):
         self.layer4 = self._make_layer(width * 8, layers[3], stride=2)
 
         embed_dim = width * 32  # the ResNet feature dimension
-        self.attnpool = AttentionPool2d(
-            input_resolution // 32, embed_dim, heads, output_dim
-        )
+        self.attnpool = AttentionPool2d(input_resolution // 32, embed_dim, heads, output_dim)
 
     def _make_layer(self, planes, blocks, stride=1):
         layers = [Bottleneck(self._inplanes, planes, stride)]
@@ -217,11 +205,7 @@ class ResidualAttentionBlock(nn.Module):
         self.attn_mask = attn_mask
 
     def attention(self, x: torch.Tensor):
-        self.attn_mask = (
-            self.attn_mask.to(dtype=x.dtype, device=x.device)
-            if self.attn_mask is not None
-            else None
-        )
+        self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
         return self.attn(x, x, x, need_weights=False, attn_mask=self.attn_mask)[0]
 
     def forward(self, x: torch.Tensor):
@@ -231,15 +215,11 @@ class ResidualAttentionBlock(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(
-        self, width: int, layers: int, heads: int, attn_mask: torch.Tensor = None
-    ):
+    def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor = None):
         super().__init__()
         self.width = width
         self.layers = layers
-        self.resblocks = nn.ModuleList(
-            [ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)]
-        )
+        self.resblocks = nn.ModuleList([ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
 
     def forward(self, x: torch.Tensor):
         return self.resblocks(x)
@@ -268,9 +248,7 @@ class VisionTransformer(nn.Module):
 
         scale = width**-0.5
         self.class_embedding = nn.Parameter(scale * torch.randn(width))
-        self.positional_embedding = nn.Parameter(
-            scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width)
-        )
+        self.positional_embedding = nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
         self.ln_pre = LayerNorm(width)
 
         self.transformer = Transformer(width, layers, heads)
@@ -285,9 +263,7 @@ class VisionTransformer(nn.Module):
         x = torch.cat(
             [
                 self.class_embedding.to(x.dtype)
-                + torch.zeros(
-                    x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device
-                ),
+                + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device),
                 x,
             ],
             dim=1,
@@ -366,9 +342,7 @@ class CLIP(nn.Module):
 
         self.vocab_size = vocab_size
         self.token_embedding = nn.Embedding(vocab_size, transformer_width)
-        self.positional_embedding = nn.Parameter(
-            torch.empty(self.context_length, transformer_width)
-        )
+        self.positional_embedding = nn.Parameter(torch.empty(self.context_length, transformer_width))
         self.ln_final = LayerNorm(transformer_width)
 
         self.text_projection = nn.Parameter(torch.empty(transformer_width, embed_dim))
@@ -398,9 +372,7 @@ class CLIP(nn.Module):
                     if name.endswith("bn3.weight"):
                         nn.init.zeros_(param)
 
-        proj_std = (self.transformer.width**-0.5) * (
-            (2 * self.transformer.layers) ** -0.5
-        )
+        proj_std = (self.transformer.width**-0.5) * ((2 * self.transformer.layers) ** -0.5)
         attn_std = self.transformer.width**-0.5
         fc_std = (2 * self.transformer.width) ** -0.5
         for block in self.transformer.resblocks:
@@ -495,38 +467,20 @@ def build_model(state_dict: dict):
     if vit:
         vision_width = state_dict["visual.conv1.weight"].shape[0]
         vision_layers = len(
-            [
-                k
-                for k in state_dict.keys()
-                if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")
-            ]
+            [k for k in state_dict.keys() if k.startswith("visual.") and k.endswith(".attn.in_proj_weight")]
         )
         vision_patch_size = state_dict["visual.conv1.weight"].shape[-1]
-        grid_size = round(
-            (state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5
-        )
+        grid_size = round((state_dict["visual.positional_embedding"].shape[0] - 1) ** 0.5)
         image_resolution = vision_patch_size * grid_size
     else:
         counts: list = [
-            len(
-                set(
-                    k.split(".")[2]
-                    for k in state_dict
-                    if k.startswith(f"visual.layer{b}")
-                )
-            )
-            for b in [1, 2, 3, 4]
+            len(set(k.split(".")[2] for k in state_dict if k.startswith(f"visual.layer{b}"))) for b in [1, 2, 3, 4]
         ]
         vision_layers = tuple(counts)
         vision_width = state_dict["visual.layer1.0.conv1.weight"].shape[0]
-        output_width = round(
-            (state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5
-        )
+        output_width = round((state_dict["visual.attnpool.positional_embedding"].shape[0] - 1) ** 0.5)
         vision_patch_size = None
-        assert (
-            output_width**2 + 1
-            == state_dict["visual.attnpool.positional_embedding"].shape[0]
-        )
+        assert output_width**2 + 1 == state_dict["visual.attnpool.positional_embedding"].shape[0]
         image_resolution = output_width * 32
 
     embed_dim = state_dict["text_projection"].shape[1]
@@ -534,11 +488,7 @@ def build_model(state_dict: dict):
     vocab_size = state_dict["token_embedding.weight"].shape[0]
     transformer_width = state_dict["ln_final.weight"].shape[0]
     transformer_heads = transformer_width // 64
-    transformer_layers = len(
-        set(
-            k.split(".")[2] for k in state_dict if k.startswith("transformer.resblocks")
-        )
-    )
+    transformer_layers = len(set(k.split(".")[2] for k in state_dict if k.startswith("transformer.resblocks")))
 
     model = CLIP(
         embed_dim,

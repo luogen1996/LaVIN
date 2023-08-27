@@ -14,9 +14,7 @@ def _load_and_redistribute_checkpoint(llama_model_path, model_name):
     tokenizer = Tokenizer(model_path=str(Path(llama_model_path) / "tokenizer.model"))
     print("Using model path: %s, model_name: %s" % (llama_model_path, model_name))
     if model_name == "7B":
-        checkpoint = torch.load(
-            llama_model_path + model_name + "/consolidated.00.pth", map_location="cpu"
-        )
+        checkpoint = torch.load(llama_model_path + model_name + "/consolidated.00.pth", map_location="cpu")
         return checkpoint, tokenizer, params
 
     checkpoints = (Path(llama_model_path) / model_name).glob("*.pth")
@@ -76,9 +74,7 @@ def LaVIN(args):
     llama_model_path = args.llama_model_path
     model_name = args.llm_model
 
-    checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(
-        llama_model_path, model_name
-    )
+    checkpoint, tokenizer, params = _load_and_redistribute_checkpoint(llama_model_path, model_name)
 
     model_args: ModelArgs = ModelArgs(
         max_seq_len=args.max_seq_len,

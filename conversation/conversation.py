@@ -127,9 +127,7 @@ class Chat:
 
     def ask(self, text, conv):
         if (
-            len(conv.messages) > 0
-            and conv.messages[-1][0] == conv.roles[0]
-            and conv.messages[-1][1][-6:] == "</Img>"
+            len(conv.messages) > 0 and conv.messages[-1][0] == conv.roles[0] and conv.messages[-1][1][-6:] == "</Img>"
         ):  # last message is image.
             conv.messages[-1][1] = " ".join([conv.messages[-1][1], text])
         else:
@@ -162,15 +160,8 @@ class Chat:
 
         prompt = prompt[begin_idx:]
         CODE = self.lavin.tokenizer.encode(prompt, bos=False, eos=False)
-        if ERROR_CODE in [
-            CODE[i : i + len(ERROR_CODE)]
-            for i in range(len(CODE) - len(ERROR_CODE) + 1)
-        ]:
-            output_text = (
-                self.lavin.tokenizer.decode(ERROR_MESSAGE)
-                .split("Responese:")[-1]
-                .strip()
-            )
+        if ERROR_CODE in [CODE[i : i + len(ERROR_CODE)] for i in range(len(CODE) - len(ERROR_CODE) + 1)]:
+            output_text = self.lavin.tokenizer.decode(ERROR_MESSAGE).split("Responese:")[-1].strip()
         else:
             outputs = self.lavin.generate(
                 prompts=[prompt],
@@ -219,7 +210,5 @@ class Chat:
         return (
             prompt,
             indicator,
-            img_list[0]
-            if indicator == 1
-            else torch.Tensor(torch.zeros(1, 3, 224, 224).float()),
+            img_list[0] if indicator == 1 else torch.Tensor(torch.zeros(1, 3, 224, 224).float()),
         )
