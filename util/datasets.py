@@ -20,11 +20,11 @@ import re
 
 import torch
 import torch.utils.data as Data
-from lavin import Tokenizer
 from PIL import Image
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision.transforms import transforms
 
+from lavin import Tokenizer
 from util.base_prompt import *
 
 

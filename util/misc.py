@@ -20,6 +20,8 @@ import torch
 import torch.distributed as dist
 from torch import inf
 
+from fairscale.nn.model_parallel.initialize import initialize_model_parallel
+
 
 class SmoothedValue(object):
     """Track a series of values and provide access to smoothed values over a
@@ -222,7 +224,6 @@ def save_on_master(*args, **kwargs):
         torch.save(*args, **kwargs)
 
 
-from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 
 
 def init_distributed_mode(args):

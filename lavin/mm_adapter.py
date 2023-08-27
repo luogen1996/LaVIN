@@ -1,9 +1,12 @@
+from typing import Optional, Tuple
+
 import torch
 from torch import nn
-import lavin
-from typing import Optional, Tuple
 from torch.cuda.amp import autocast
+
+import lavin
 import lavin.eval_model
+from clip.model import ResidualAttentionBlock
 
 
 class RepAdapter_Router(nn.Module):
@@ -266,7 +269,6 @@ def set_MMAdapter(model, method, dim=8, s=1, set_forward=True, t=10, gradient_ch
                 )
 
 
-from clip.model import ResidualAttentionBlock
 
 
 def set_Clip_Adapter(model, method, dim=8, s=1, set_forward=True, t=10.0):

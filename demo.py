@@ -1,23 +1,22 @@
 import argparse
 import os
 import random
+from typing import Tuple
 
+import gradio as gr
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import gradio as gr
 from PIL import Image
-
-# from minigpt4.common.config import Config
-from util.misc import get_rank
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+from torchvision.transforms import transforms
 
 # from minigpt4.common.registry import registry
-from conversation.conversation import Chat, CONV_VISION
-from torchvision.transforms import transforms
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+from conversation.conversation import CONV_VISION, Chat
 from eval import load
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
-from typing import Tuple
+# from minigpt4.common.config import Config
+from util.misc import get_rank
 
 
 def parse_args():

@@ -1,14 +1,12 @@
-from transformers.utils.bitsandbytes import *
-from transformers import BitsAndBytesConfig
+import bitsandbytes as bnb
 import torch
 from torch import nn
-import bitsandbytes as bnb
+from transformers import BitsAndBytesConfig
+from transformers.utils.bitsandbytes import *
 
-from fairscale.nn.model_parallel.layers import (
-    ParallelEmbedding,
-    RowParallelLinear,
-    ColumnParallelLinear,
-)
+from fairscale.nn.model_parallel.layers import (ColumnParallelLinear,
+                                                ParallelEmbedding,
+                                                RowParallelLinear)
 
 
 def _replace_with_bnb_linear(

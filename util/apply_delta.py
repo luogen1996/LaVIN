@@ -12,12 +12,11 @@ import os
 import shutil
 import tempfile
 
-from huggingface_hub import snapshot_download
 import torch
+from huggingface_hub import snapshot_download
 from torch import nn
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
-
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 GB = 1 << 30
 

@@ -1,36 +1,33 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Tuple
-import os
-import sys
-import torch
-import fire
-import time
 import json
-
-from fairscale.nn.model_parallel.initialize import initialize_model_parallel
-
-from lavin.eval_model import ModelArgs, Transformer
-from lavin.tokenizer import Tokenizer
-from lavin.generator import LaVIN_Generator
-from lavin.mm_adapter import set_MMAdapter, set_Clip_Adapter
-from util.base_prompt import build_prompt
-from dataclasses import dataclass
-import re
+import os
 import random
-
+import re
+import sys
+import time
 import warnings
-import pandas as pd
-from PIL import Image
-
-from torchvision.transforms import transforms
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-
+from dataclasses import dataclass
 from pathlib import Path
-import fairscale.nn.model_parallel.initialize as fs_init
+from typing import Tuple
+
+import pandas as pd
+import torch
 import torch.distributed as dist
+from PIL import Image
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+from torchvision.transforms import transforms
+
+import fairscale.nn.model_parallel.initialize as fs_init
+import fire
+from fairscale.nn.model_parallel.initialize import initialize_model_parallel
+from lavin.eval_model import ModelArgs, Transformer
+from lavin.generator import LaVIN_Generator
+from lavin.mm_adapter import set_Clip_Adapter, set_MMAdapter
+from lavin.tokenizer import Tokenizer
 from util.apply_delta import apply_model_delta_online
+from util.base_prompt import build_prompt
 
 warnings.filterwarnings("ignore")
 

@@ -2,12 +2,13 @@ import hashlib
 import os
 import urllib
 import warnings
-from typing import Any, Union, List
-from pkg_resources import packaging
+from typing import Any, List, Union
 
 import torch
 from PIL import Image
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+from pkg_resources import packaging
+from torchvision.transforms import (CenterCrop, Compose, Normalize, Resize,
+                                    ToTensor)
 from tqdm import tqdm
 
 from .model import build_model

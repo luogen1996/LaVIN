@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
+from torch.cuda.amp import autocast
 
 
 class Bottleneck(nn.Module):
@@ -169,7 +170,6 @@ class ModifiedResNet(nn.Module):
         return x
 
 
-from torch.cuda.amp import autocast
 
 
 class LayerNorm(nn.LayerNorm):

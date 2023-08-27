@@ -6,19 +6,18 @@ import pdb
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
-import clip
-import fairscale.nn.model_parallel.initialize as fs_init
 import torch
 import torch.nn.functional as F
-from fairscale.nn.model_parallel.layers import (
-    ColumnParallelLinear,
-    ParallelEmbedding,
-    RowParallelLinear,
-)
 from timm.models.layers import DropPath
 from torch import nn
 from torch.cuda.amp import autocast
 from torch.nn import Embedding, Linear
+
+import clip
+import fairscale.nn.model_parallel.initialize as fs_init
+from fairscale.nn.model_parallel.layers import (ColumnParallelLinear,
+                                                ParallelEmbedding,
+                                                RowParallelLinear)
 
 
 @dataclass

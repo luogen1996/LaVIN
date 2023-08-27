@@ -1,10 +1,10 @@
+import json
+from pathlib import Path
+
 import torch
 
-import json
 from lavin import ModelArgs, Tokenizer, Transformer
-from lavin.mm_adapter import set_MMAdapter, set_Clip_Adapter
-
-from pathlib import Path
+from lavin.mm_adapter import set_Clip_Adapter, set_MMAdapter
 from util.apply_delta import apply_model_delta_online
 
 

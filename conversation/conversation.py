@@ -1,14 +1,13 @@
 import argparse
+import dataclasses
+import re
 import time
-from PIL import Image
+from enum import Enum, auto
+from typing import Any, List, Tuple
 
 import torch
+from PIL import Image
 from transformers import StoppingCriteria, StoppingCriteriaList
-
-import dataclasses
-from enum import auto, Enum
-from typing import List, Tuple, Any
-import re
 
 ERROR_CODE = [260, 1794, 11440]
 ERROR_MESSAGE = [1, 7423, 29892, 474, 508, 29915, 29873, 1234, 445, 1139, 29889, 2]

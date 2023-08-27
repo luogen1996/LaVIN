@@ -4,10 +4,10 @@
 from typing import List
 
 import torch
-
-from lavin.tokenizer import Tokenizer
-from lavin.eval_model import Transformer
 from torch.cuda.amp import autocast
+
+from lavin.eval_model import Transformer
+from lavin.tokenizer import Tokenizer
 
 
 class LaVIN_Generator:
