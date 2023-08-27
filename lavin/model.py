@@ -10,9 +10,11 @@ import clip
 import fairscale.nn.model_parallel.initialize as fs_init
 import torch
 import torch.nn.functional as F
-from fairscale.nn.model_parallel.layers import (ColumnParallelLinear,
-                                                ParallelEmbedding,
-                                                RowParallelLinear)
+from fairscale.nn.model_parallel.layers import (
+    ColumnParallelLinear,
+    ParallelEmbedding,
+    RowParallelLinear,
+)
 from timm.models.layers import DropPath
 from torch import nn
 from torch.cuda.amp import autocast
@@ -31,11 +33,10 @@ class ModelArgs:
 
     max_batch_size: int = 32
     max_seq_len: int = 2048
-    drop_path: float = 0.
+    drop_path: float = 0.0
 
 
 class RMSNorm(torch.nn.Module):
-
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
         self.eps = eps
@@ -50,7 +51,7 @@ class RMSNorm(torch.nn.Module):
 
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
-    freqs = 1.0 / (theta**(torch.arange(0, dim, 2)[:(dim // 2)].float() / dim))
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t, freqs).float()  # type: ignore
     freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # complex64
@@ -79,14 +80,13 @@ def apply_rotary_emb(
 
 
 class Attention(nn.Module):
-
     def __init__(self, args: ModelArgs):
         super().__init__()
 
         self.n_local_heads = args.n_heads
         self.head_dim = args.dim // args.n_heads
 
-        #modified bias for reparameterizing
+        # modified bias for reparameterizing
         self.wq = Linear(args.dim, args.n_heads * self.head_dim, bias=False)
         self.wk = Linear(args.dim, args.n_heads * self.head_dim, bias=False)
         self.wv = Linear(args.dim, args.n_heads * self.head_dim, bias=False)
@@ -100,13 +100,14 @@ class Attention(nn.Module):
         # ).cuda()
         # self.gate = torch.nn.Parameter(torch.zeros(1, self.n_local_heads, 1, 1))
 
-    def forward(self,
-                x: torch.Tensor,
-                start_pos: int,
-                freqs_cis: torch.Tensor,
-                mask: Optional[torch.Tensor],
-                adapter=None):
-
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
         bsz, seqlen, _ = x.shape
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
@@ -133,7 +134,6 @@ class Attention(nn.Module):
 
 
 class FeedForward(nn.Module):
-
     def __init__(
         self,
         dim: int,
@@ -153,33 +153,41 @@ class FeedForward(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-
     def __init__(self, layer_id: int, args: ModelArgs):
         super().__init__()
         self.n_heads = args.n_heads
         self.dim = args.dim
         self.head_dim = args.dim // args.n_heads
         self.attention = Attention(args)
-        self.feed_forward = FeedForward(dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of)
+        self.feed_forward = FeedForward(
+            dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of
+        )
         self.layer_id = layer_id
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
-        self.drop_path = DropPath(args.drop_path) if args.drop_path > 0. else nn.Identity()
+        self.drop_path = (
+            DropPath(args.drop_path) if args.drop_path > 0.0 else nn.Identity()
+        )
 
-    def forward(self,
-                x: torch.Tensor,
-                start_pos: int,
-                freqs_cis: torch.Tensor,
-                mask: Optional[torch.Tensor],
-                adapter=None):
-
-        h = x + self.drop_path(self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter))
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
+        h = x + self.drop_path(
+            self.attention.forward(
+                self.attention_norm(x), start_pos, freqs_cis, mask, adapter
+            )
+        )
         out = h + self.drop_path(self.feed_forward.forward(self.ffn_norm(h)))
         return out
 
 
 class AdapterMLP(nn.Module):
-    """ Pytorch Implemention of RepAdapter for 1d tensor"""
+    """Pytorch Implemention of RepAdapter for 1d tensor"""
 
     def __init__(self, in_features=768, hidden_dim=128, out_features=4096):
         super().__init__()
@@ -198,7 +206,6 @@ class AdapterMLP(nn.Module):
 
 
 class Transformer(nn.Module):
-
     def __init__(self, params: ModelArgs):
         super().__init__()
         self.params = params
@@ -216,33 +223,49 @@ class Transformer(nn.Module):
         self.norm = RMSNorm(params.dim, eps=params.norm_eps)
         self.output = Linear(params.dim, params.vocab_size, bias=False)
 
-        self.freqs_cis = precompute_freqs_cis(self.params.dim // self.params.n_heads, self.params.max_seq_len * 2)
+        self.freqs_cis = precompute_freqs_cis(
+            self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
+        )
 
-        self.backbone = clip.load('ViT-L/14')[0]
+        self.backbone = clip.load("ViT-L/14")[0]
 
-        #handcraft define self.backbone.visual.transformer.width
+        # handcraft define self.backbone.visual.transformer.width
         self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
         self.adapter_modality_embedding = nn.Embedding(2, params.dim).float()
 
-    def insert_image_embeds(self, examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators):
+    def insert_image_embeds(
+        self, examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators
+    ):
         _bsz, seqlen, _ = examples.shape
         new_examples = []
         new_labels = []
         for i, (example, label) in enumerate(zip(examples, labels)):
-            if img_indicators[i] > 0.:
-                new_example = torch.cat([example[:1], prefix_img, image_embeds[i], example[1:]], 0)
-                new_label = torch.cat([
-                    label[:1],
-                    torch.zeros(prefix_img.shape[0] + image_embeds.shape[1]).to(examples.device).type_as(labels),
-                    label[1:]
-                ])
+            if img_indicators[i] > 0.0:
+                new_example = torch.cat(
+                    [example[:1], prefix_img, image_embeds[i], example[1:]], 0
+                )
+                new_label = torch.cat(
+                    [
+                        label[:1],
+                        torch.zeros(prefix_img.shape[0] + image_embeds.shape[1])
+                        .to(examples.device)
+                        .type_as(labels),
+                        label[1:],
+                    ]
+                )
                 new_example = new_example[:seqlen]
                 new_label = new_label[:seqlen]
             else:
                 new_example = torch.cat([example[:1], prefix_nonimg, example[1:]], 0)
                 new_label = torch.cat(
-                    [label[:1],
-                     torch.zeros(prefix_nonimg.shape[0]).to(examples.device).type_as(labels), label[1:]])
+                    [
+                        label[:1],
+                        torch.zeros(prefix_nonimg.shape[0])
+                        .to(examples.device)
+                        .type_as(labels),
+                        label[1:],
+                    ]
+                )
                 new_example = new_example[:seqlen]
                 new_label = new_label[:seqlen]
             new_examples.append(new_example.unsqueeze(0))
@@ -251,8 +274,15 @@ class Transformer(nn.Module):
         new_labels = torch.cat(new_labels, 0)
         return new_examples, new_labels
 
-    def forward(self, examples, labels, images=None, prefix_img=None, prefix_nonimg=None, img_indicators=None):
-
+    def forward(
+        self,
+        examples,
+        labels,
+        images=None,
+        prefix_img=None,
+        prefix_nonimg=None,
+        img_indicators=None,
+    ):
         # print(images.dtype)
         image_embeds = self.backbone.encode_image(images).half()
 
@@ -272,7 +302,9 @@ class Transformer(nn.Module):
         prefix_img = self.tok_embeddings(prefix_img.unsqueeze(0)).squeeze(0)
         prefix_nonimg = self.tok_embeddings(prefix_nonimg.unsqueeze(0)).squeeze(0)
 
-        h, labels = self.insert_image_embeds(examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators)
+        h, labels = self.insert_image_embeds(
+            examples, labels, image_embeds, prefix_img, prefix_nonimg, img_indicators
+        )
 
         h = torch.cat([modality_embed.half(), h], 1)[:, :seqlen]
         modality_labels = torch.zeros(_bsz, 1).to(labels.device).type_as(labels)
@@ -284,7 +316,7 @@ class Transformer(nn.Module):
         mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=h.device)
         mask = torch.triu(mask, diagonal=0 + 1).type_as(h)
 
-        #mask decision token
+        # mask decision token
         mask[:, :, 1:, 0] = float("-inf")
 
         start_pos = 0

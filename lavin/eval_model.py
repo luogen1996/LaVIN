@@ -17,6 +17,7 @@ from fairscale.nn.model_parallel.layers import (
 )
 from lavin.model import AdapterMLP
 
+
 @dataclass
 class ModelArgs:
     dim: int = 512
@@ -25,11 +26,10 @@ class ModelArgs:
     vocab_size: int = -1  # defined later by tokenizer
     multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
     norm_eps: float = 1e-5
-    hidden_proj: int=128
+    hidden_proj: int = 128
 
     max_batch_size: int = 32
     max_seq_len: int = 2048
-
 
 
 class RMSNorm(torch.nn.Module):
@@ -119,7 +119,14 @@ class Attention(nn.Module):
         ).cuda()
         self.gate = torch.nn.Parameter(torch.zeros(1, self.n_local_heads, 1, 1))
 
-    def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
         bsz, seqlen, _ = x.shape
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
@@ -132,20 +139,19 @@ class Attention(nn.Module):
         self.cache_k = self.cache_k.to(xq)
         self.cache_v = self.cache_v.to(xq)
 
-        #add modilaty embedding
-        if start_pos==0:
-            self.cache_k[:bsz, start_pos : start_pos + seqlen-1] = xk[:,1:]
-            self.cache_v[:bsz, start_pos : start_pos + seqlen-1] = xv[:,1:]
+        # add modilaty embedding
+        if start_pos == 0:
+            self.cache_k[:bsz, start_pos : start_pos + seqlen - 1] = xk[:, 1:]
+            self.cache_v[:bsz, start_pos : start_pos + seqlen - 1] = xv[:, 1:]
 
             keys = xk
             values = xv
         else:
-            self.cache_k[:bsz, start_pos: start_pos + seqlen] = xk
-            self.cache_v[:bsz, start_pos: start_pos + seqlen] = xv
+            self.cache_k[:bsz, start_pos : start_pos + seqlen] = xk
+            self.cache_v[:bsz, start_pos : start_pos + seqlen] = xv
 
             keys = self.cache_k[:bsz, : start_pos + seqlen]
             values = self.cache_v[:bsz, : start_pos + seqlen]
-
 
         xq = xq.transpose(1, 2)
         keys = keys.transpose(1, 2)
@@ -156,9 +162,7 @@ class Attention(nn.Module):
         scores = F.softmax(scores.float(), dim=-1).type_as(xq)
         output = torch.matmul(scores, values)  # (bs, n_local_heads, slen, head_dim)
 
-        output = output.transpose(
-            1, 2
-        ).contiguous().view(bsz, seqlen, -1)
+        output = output.transpose(1, 2).contiguous().view(bsz, seqlen, -1)
 
         return self.wo(output)
 
@@ -202,19 +206,28 @@ class TransformerBlock(nn.Module):
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
 
-        self.drop_path =  nn.Identity()
-        self.cache_weights = torch.zeros(
-            (args.max_batch_size, 2)
-        ).cuda()
-        self.cache_weights_ffn = torch.zeros(
-            (args.max_batch_size, 2)
-        ).cuda()
-    def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
-        h = x + self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter)
+        self.drop_path = nn.Identity()
+        self.cache_weights = torch.zeros((args.max_batch_size, 2)).cuda()
+        self.cache_weights_ffn = torch.zeros((args.max_batch_size, 2)).cuda()
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
+        h = x + self.attention.forward(
+            self.attention_norm(x), start_pos, freqs_cis, mask, adapter
+        )
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
-from  torch.cuda.amp import autocast
+
+from torch.cuda.amp import autocast
+
+
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
         super().__init__()
@@ -239,29 +252,31 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
-        self.backbone = clip.load('ViT-L/14')[0]
+        self.backbone = clip.load("ViT-L/14")[0]
 
         self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
-        self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
+        self.adapter_modality_embedding = nn.Embedding(2, params.dim).float()
 
     @torch.inference_mode()
     def forward(self, tokens: torch.Tensor, start_pos: int):
         with autocast():
-            _bsz, seqlen,_ = tokens.shape
+            _bsz, seqlen, _ = tokens.shape
             # h = self.tok_embeddings(tokens)
-            h=tokens
+            h = tokens
             self.freqs_cis = self.freqs_cis.to(h.device)
             freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
 
             mask = None
             if seqlen > 1:
-                mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=tokens.device)
+                mask = torch.full(
+                    (1, 1, seqlen, seqlen), float("-inf"), device=tokens.device
+                )
                 mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
                 # mask decision token
                 mask[:, :, 1:, 0] = float("-inf")
 
             for layer in self.layers:
-                h = layer(h, start_pos, freqs_cis,mask)
+                h = layer(h, start_pos, freqs_cis, mask)
 
             h = self.norm(h)
             output = self.output(h[:, -1, :])  # only compute last logits

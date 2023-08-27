@@ -1,11 +1,11 @@
 def get_question_text(problem):
-    question = problem['question']
+    question = problem["question"]
     return question
 
 
 def get_context_text(problem, use_caption):
-    txt_context = problem['hint']
-    img_context = problem['caption'] if use_caption else ""
+    txt_context = problem["hint"]
+    img_context = problem["caption"] if use_caption else ""
     context = " ".join([txt_context, img_context]).strip()
     if context == "":
         context = "N/A"
@@ -13,33 +13,34 @@ def get_context_text(problem, use_caption):
 
 
 def get_choice_text(probelm, options):
-    choices = probelm['choices']
+    choices = probelm["choices"]
     choice_list = []
     for i, c in enumerate(choices):
         choice_list.append("({}) {}".format(options[i], c))
     choice_txt = " ".join(choice_list)
-    #print(choice_txt)
+    # print(choice_txt)
     return choice_txt
 
 
 def get_answer(problem, options):
-    return options[problem['answer']]
+    return options[problem["answer"]]
 
 
 def get_lecture_text(problem):
     # \\n: GPT-3 can generate the lecture with more tokens.
-    lecture = problem['lecture'].replace("\n", "\\n")
+    lecture = problem["lecture"].replace("\n", "\\n")
     return lecture
 
 
 def get_solution_text(problem):
     # \\n: GPT-3 can generate the solution with more tokens
-    solution = problem['solution'].replace("\n", "\\n")
+    solution = problem["solution"].replace("\n", "\\n")
     return solution
 
 
-def create_one_example(format, question, context, choice, answer, lecture, solution, test_example=True):
-
+def create_one_example(
+    format, question, context, choice, answer, lecture, solution, test_example=True
+):
     input_format, output_format = format.split("-")
 
     ## Inputs
@@ -65,25 +66,25 @@ def create_one_example(format, question, context, choice, answer, lecture, solut
     # Outputs
     if test_example:
         output = "Answer:"
-    elif output_format == 'A':
+    elif output_format == "A":
         output = f"Answer: The answer is {answer}."
 
-    elif output_format == 'AL':
+    elif output_format == "AL":
         output = f"Answer: The answer is {answer}. BECAUSE: {solution}"
-    elif output_format == 'AE':
+    elif output_format == "AE":
         output = f"Answer: The answer is {answer}. BECAUSE: {lecture}"
-    elif output_format == 'ALE':
+    elif output_format == "ALE":
         output = f"Answer: The answer is {answer}. BECAUSE: {lecture} {solution}"
-    elif output_format == 'AEL':
+    elif output_format == "AEL":
         output = f"Answer: The answer is {answer}. BECAUSE: {solution} {lecture}"
 
-    elif output_format == 'LA':
+    elif output_format == "LA":
         output = f"Answer: {lecture} The answer is {answer}."
-    elif output_format == 'EA':
+    elif output_format == "EA":
         output = f"Answer: {solution} The answer is {answer}."
-    elif output_format == 'LEA':
+    elif output_format == "LEA":
         output = f"Answer: {lecture} {solution} The answer is {answer}."
-    elif output_format == 'ELA':
+    elif output_format == "ELA":
         output = f"Answer: {solution} {lecture} The answer is {answer}."
 
     text = input + output
@@ -93,8 +94,9 @@ def create_one_example(format, question, context, choice, answer, lecture, solut
     return text
 
 
-def create_training_example(format, question, context, choice, answer, lecture, solution):
-
+def create_training_example(
+    format, question, context, choice, answer, lecture, solution
+):
     input_format, output_format = format.split("-")
 
     ## Inputs
@@ -117,30 +119,29 @@ def create_training_example(format, question, context, choice, answer, lecture, 
     elif input_format == "QCLEM":
         input = f"Question: {question}\nContext: {context}\nBECAUSE: {lecture} {solution}\nOptions: {choice}\n"
 
-    input+="Response:"
-    input='\n'+input
-
+    input += "Response:"
+    input = "\n" + input
 
     # Outputs
-    if output_format == 'A':
+    if output_format == "A":
         output = f"The answer is {answer}."
 
-    elif output_format == 'AL':
+    elif output_format == "AL":
         output = f"The answer is {answer}. BECAUSE: {solution}"
-    elif output_format == 'AE':
+    elif output_format == "AE":
         output = f"The answer is {answer}. BECAUSE: {lecture}"
-    elif output_format == 'ALE':
+    elif output_format == "ALE":
         output = f"The answer is {answer}. BECAUSE: {lecture} {solution}"
-    elif output_format == 'AEL':
+    elif output_format == "AEL":
         output = f"The answer is {answer}. BECAUSE: {solution} {lecture}"
 
-    elif output_format == 'LA':
+    elif output_format == "LA":
         output = f"{lecture} The answer is {answer}."
-    elif output_format == 'EA':
+    elif output_format == "EA":
         output = f"{solution} The answer is {answer}."
-    elif output_format == 'LEA':
+    elif output_format == "LEA":
         output = f"{lecture} {solution} The answer is {answer}."
-    elif output_format == 'ELA':
+    elif output_format == "ELA":
         output = f"{solution} {lecture} The answer is {answer}."
 
     input = input.replace("  ", " ").strip()
@@ -151,8 +152,8 @@ def create_training_example(format, question, context, choice, answer, lecture, 
     # print(input)
     return input, output
 
-def build_few_shot_prompt(problems, shot_qids, test_qid, args):
 
+def build_few_shot_prompt(problems, shot_qids, test_qid, args):
     examples = []
 
     # n-shot training examples
@@ -164,14 +165,16 @@ def build_few_shot_prompt(problems, shot_qids, test_qid, args):
         lecture = get_lecture_text(problems[qid])
         solution = get_solution_text(problems[qid])
 
-        train_example = create_one_example(args.prompt_format,
-                                           question,
-                                           context,
-                                           choice,
-                                           answer,
-                                           lecture,
-                                           solution,
-                                           test_example=False)
+        train_example = create_one_example(
+            args.prompt_format,
+            question,
+            context,
+            choice,
+            answer,
+            lecture,
+            solution,
+            test_example=False,
+        )
         examples.append(train_example)
 
     # test example
@@ -182,23 +185,25 @@ def build_few_shot_prompt(problems, shot_qids, test_qid, args):
     lecture = get_lecture_text(problems[test_qid])
     solution = get_solution_text(problems[test_qid])
 
-    test_example = create_one_example(args.prompt_format,
-                                      question,
-                                      context,
-                                      choice,
-                                      answer,
-                                      lecture,
-                                      solution,
-                                      test_example=True)
+    test_example = create_one_example(
+        args.prompt_format,
+        question,
+        context,
+        choice,
+        answer,
+        lecture,
+        solution,
+        test_example=True,
+    )
     examples.append(test_example)
 
     # create the prompt input
-    prompt_input = '\n\n'.join(examples)
+    prompt_input = "\n\n".join(examples)
 
     return prompt_input
 
-def build_prompt(problems, test_qid, args):
 
+def build_prompt(problems, test_qid, args):
     # test example
     question = get_question_text(problems[test_qid])
     context = get_context_text(problems[test_qid], args.use_caption)
@@ -207,11 +212,7 @@ def build_prompt(problems, test_qid, args):
     lecture = get_lecture_text(problems[test_qid])
     solution = get_solution_text(problems[test_qid])
 
-    test_example = create_training_example(args.prompt_format,
-                                      question,
-                                      context,
-                                      choice,
-                                      answer,
-                                      lecture,
-                                      solution)
+    test_example = create_training_example(
+        args.prompt_format, question, context, choice, answer, lecture, solution
+    )
     return test_example
