@@ -66,7 +66,6 @@ def get_args_parser():
         "--adapter_type",
         type=str,
         default="attn",
-        metavar="LENGTH",
         choices=["block", "attn"],
         help="the insert position  of adapter layer",
     )
@@ -75,7 +74,6 @@ def get_args_parser():
         "--visual_adapter_type",
         type=str,
         default="normal",
-        metavar="LENGTH",
         choices=["normal", "router", "router_block"],
         help="the type of adapter layer",
     )
@@ -84,7 +82,6 @@ def get_args_parser():
         "--adapter_dim",
         type=int,
         default=8,
-        metavar="LENGTH",
         help="the dims of adapter layer",
     )
 
@@ -92,7 +89,6 @@ def get_args_parser():
         "--hidden_proj",
         type=int,
         default=128,
-        metavar="LENGTH",
         help="the visual adapter dim",
     )
 
@@ -100,7 +96,6 @@ def get_args_parser():
         "--temperature",
         type=float,
         default=10.0,
-        metavar="LENGTH",
         help="the temperature of router",
     )
 
@@ -108,23 +103,20 @@ def get_args_parser():
         "--n_prompt",
         type=int,
         default=10,
-        metavar="LENGTH",
         help="the length of visual features",
     )
     parser.add_argument(
         "--adapter_scale",
         type=float,
         default=1.0,
-        metavar="LENGTH",
         help="the scales of adapter layer",
     )
-    parser.add_argument("--drop_path", type=float, default=0.0, metavar="LENGTH", help="drop path")
+    parser.add_argument("--drop_path", type=float, default=0.0, help="drop path")
 
     parser.add_argument(
         "--max_seq_len",
         type=int,
         default=512,
-        metavar="LENGTH",
         help="the maximum sequence length",
     )
 
@@ -169,7 +161,6 @@ def get_args_parser():
         "--warmup_epochs",
         type=float,
         default=40,
-        metavar="N",
         help="epochs to warmup LR",
     )
 
@@ -186,7 +177,7 @@ def get_args_parser():
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume", default="", help="resume from checkpoint")
 
-    parser.add_argument("--start_epoch", default=0, type=int, metavar="N", help="start epoch")
+    parser.add_argument("--start_epoch", default=0, type=int, help="start epoch")
     parser.add_argument("--num_workers", default=10, type=int)
     parser.add_argument(
         "--pin_mem",

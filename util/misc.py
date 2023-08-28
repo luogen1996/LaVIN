@@ -224,8 +224,6 @@ def save_on_master(*args, **kwargs):
         torch.save(*args, **kwargs)
 
 
-
-
 def init_distributed_mode(args):
     if args.dist_on_itp:
         args.rank = int(os.environ["OMPI_COMM_WORLD_RANK"])

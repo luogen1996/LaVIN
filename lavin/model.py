@@ -291,7 +291,7 @@ class Transformer(nn.Module):
 
         freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = freqs_cis[:seqlen]
-        mask = None
+
         mask = torch.full((1, 1, seqlen, seqlen), float("-inf"), device=h.device)
         mask = torch.triu(mask, diagonal=0 + 1).type_as(h)
 

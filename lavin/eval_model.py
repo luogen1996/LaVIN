@@ -211,8 +211,6 @@ class TransformerBlock(nn.Module):
         return out
 
 
-
-
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
         super().__init__()

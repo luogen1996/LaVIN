@@ -170,8 +170,6 @@ class ModifiedResNet(nn.Module):
         return x
 
 
-
-
 class LayerNorm(nn.LayerNorm):
     """Subclass torch's LayerNorm to handle fp16."""
 

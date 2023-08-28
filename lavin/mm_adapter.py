@@ -269,8 +269,6 @@ def set_MMAdapter(model, method, dim=8, s=1, set_forward=True, t=10, gradient_ch
                 )
 
 
-
-
 def set_Clip_Adapter(model, method, dim=8, s=1, set_forward=True, t=10.0):
     for _ in model.children():
         if type(_) == ResidualAttentionBlock:
