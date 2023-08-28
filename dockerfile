@@ -2,7 +2,6 @@ FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
 
 WORKDIR /workspace
 COPY ./requirements.txt /workspace/
-COPY ./bitsandbytes-0.39.1.tar.gz /workspace/
 
 # (Optional)
 RUN sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/mirrors.aliyun.com\/ubuntu\//g' /etc/apt/sources.list && \
@@ -14,6 +13,6 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt && pip install /workspace/bitsandbytes-0.39.1.tar.gz
+RUN pip install -r requirements.txt
 
 CMD bash
