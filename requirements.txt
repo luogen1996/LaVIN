@@ -1,4 +1,4 @@
-torch==1.13.0
+torch>=1.13.0
 fairscale
 fire
 sentencepiece
@@ -7,4 +7,5 @@ timm
 tensorboard
 ftfy
 gradio
-bitsandbytes==0.39.0
+bitsandbytes==0.39.0 --no-binary bitsandbytes
+scipy

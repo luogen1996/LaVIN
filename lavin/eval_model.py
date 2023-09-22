@@ -1,21 +1,22 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Optional, Tuple
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
+from typing import Optional, Tuple
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
+from torch.cuda.amp import autocast
+
 import clip
 import fairscale.nn.model_parallel.initialize as fs_init
-from fairscale.nn.model_parallel.layers import (
-    ParallelEmbedding,
-    RowParallelLinear,
-    ColumnParallelLinear,
-)
+from fairscale.nn.model_parallel.layers import (ColumnParallelLinear,
+                                                ParallelEmbedding,
+                                                RowParallelLinear)
 from lavin.model import AdapterMLP
+
 
 @dataclass
 class ModelArgs:
@@ -25,11 +26,10 @@ class ModelArgs:
     vocab_size: int = -1  # defined later by tokenizer
     multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
     norm_eps: float = 1e-5
-    hidden_proj: int=128
+    hidden_proj: int = 128
 
     max_batch_size: int = 32
     max_seq_len: int = 2048
-
 
 
 class RMSNorm(torch.nn.Module):
@@ -111,15 +111,18 @@ class Attention(nn.Module):
             init_method=lambda x: x,
         )
 
-        self.cache_k = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)
-        ).cuda()
-        self.cache_v = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)
-        ).cuda()
+        self.cache_k = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)).cuda()
+        self.cache_v = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)).cuda()
         self.gate = torch.nn.Parameter(torch.zeros(1, self.n_local_heads, 1, 1))
 
-    def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
         bsz, seqlen, _ = x.shape
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
@@ -132,20 +135,19 @@ class Attention(nn.Module):
         self.cache_k = self.cache_k.to(xq)
         self.cache_v = self.cache_v.to(xq)
 
-        #add modilaty embedding
-        if start_pos==0:
-            self.cache_k[:bsz, start_pos : start_pos + seqlen-1] = xk[:,1:]
-            self.cache_v[:bsz, start_pos : start_pos + seqlen-1] = xv[:,1:]
+        # add modilaty embedding
+        if start_pos == 0:
+            self.cache_k[:bsz, start_pos : start_pos + seqlen - 1] = xk[:, 1:]
+            self.cache_v[:bsz, start_pos : start_pos + seqlen - 1] = xv[:, 1:]
 
             keys = xk
             values = xv
         else:
-            self.cache_k[:bsz, start_pos: start_pos + seqlen] = xk
-            self.cache_v[:bsz, start_pos: start_pos + seqlen] = xv
+            self.cache_k[:bsz, start_pos : start_pos + seqlen] = xk
+            self.cache_v[:bsz, start_pos : start_pos + seqlen] = xv
 
             keys = self.cache_k[:bsz, : start_pos + seqlen]
             values = self.cache_v[:bsz, : start_pos + seqlen]
-
 
         xq = xq.transpose(1, 2)
         keys = keys.transpose(1, 2)
@@ -156,9 +158,7 @@ class Attention(nn.Module):
         scores = F.softmax(scores.float(), dim=-1).type_as(xq)
         output = torch.matmul(scores, values)  # (bs, n_local_heads, slen, head_dim)
 
-        output = output.transpose(
-            1, 2
-        ).contiguous().view(bsz, seqlen, -1)
+        output = output.transpose(1, 2).contiguous().view(bsz, seqlen, -1)
 
         return self.wo(output)
 
@@ -174,15 +174,9 @@ class FeedForward(nn.Module):
         hidden_dim = int(2 * hidden_dim / 3)
         hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
 
-        self.w1 = ColumnParallelLinear(
-            dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x
-        )
-        self.w2 = RowParallelLinear(
-            hidden_dim, dim, bias=False, input_is_parallel=True, init_method=lambda x: x
-        )
-        self.w3 = ColumnParallelLinear(
-            dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x
-        )
+        self.w1 = ColumnParallelLinear(dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x)
+        self.w2 = RowParallelLinear(hidden_dim, dim, bias=False, input_is_parallel=True, init_method=lambda x: x)
+        self.w3 = ColumnParallelLinear(dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x)
 
     def forward(self, x):
         return self.w2(F.silu(self.w1(x)) * self.w3(x))
@@ -195,26 +189,28 @@ class TransformerBlock(nn.Module):
         self.dim = args.dim
         self.head_dim = args.dim // args.n_heads
         self.attention = Attention(args)
-        self.feed_forward = FeedForward(
-            dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of
-        )
+        self.feed_forward = FeedForward(dim=args.dim, hidden_dim=4 * args.dim, multiple_of=args.multiple_of)
         self.layer_id = layer_id
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
 
-        self.drop_path =  nn.Identity()
-        self.cache_weights = torch.zeros(
-            (args.max_batch_size, 2)
-        ).cuda()
-        self.cache_weights_ffn = torch.zeros(
-            (args.max_batch_size, 2)
-        ).cuda()
-    def forward(self, x: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: Optional[torch.Tensor], adapter=None):
+        self.drop_path = nn.Identity()
+        self.cache_weights = torch.zeros((args.max_batch_size, 2)).cuda()
+        self.cache_weights_ffn = torch.zeros((args.max_batch_size, 2)).cuda()
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        adapter=None,
+    ):
         h = x + self.attention.forward(self.attention_norm(x), start_pos, freqs_cis, mask, adapter)
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
-from  torch.cuda.amp import autocast
+
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
         super().__init__()
@@ -222,34 +218,28 @@ class Transformer(nn.Module):
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
 
-        self.tok_embeddings = ParallelEmbedding(
-            params.vocab_size, params.dim, init_method=lambda x: x
-        )
+        self.tok_embeddings = ParallelEmbedding(params.vocab_size, params.dim, init_method=lambda x: x)
 
         self.layers = torch.nn.ModuleList()
         for layer_id in range(params.n_layers):
             self.layers.append(TransformerBlock(layer_id, params))
 
         self.norm = RMSNorm(params.dim, eps=params.norm_eps)
-        self.output = ColumnParallelLinear(
-            params.dim, params.vocab_size, bias=False, init_method=lambda x: x
-        )
+        self.output = ColumnParallelLinear(params.dim, params.vocab_size, bias=False, init_method=lambda x: x)
 
-        self.freqs_cis = precompute_freqs_cis(
-            self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
-        )
+        self.freqs_cis = precompute_freqs_cis(self.params.dim // self.params.n_heads, self.params.max_seq_len * 2)
 
-        self.backbone = clip.load('ViT-L/14')[0]
+        self.backbone = clip.load("ViT-L/14")[0]
 
         self.adapter_proj = AdapterMLP(1024, params.hidden_proj, params.dim).float()
-        self.adapter_modality_embedding=nn.Embedding(2,params.dim).float()
+        self.adapter_modality_embedding = nn.Embedding(2, params.dim).float()
 
     @torch.inference_mode()
     def forward(self, tokens: torch.Tensor, start_pos: int):
         with autocast():
-            _bsz, seqlen,_ = tokens.shape
+            _bsz, seqlen, _ = tokens.shape
             # h = self.tok_embeddings(tokens)
-            h=tokens
+            h = tokens
             self.freqs_cis = self.freqs_cis.to(h.device)
             freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
 
@@ -261,7 +251,7 @@ class Transformer(nn.Module):
                 mask[:, :, 1:, 0] = float("-inf")
 
             for layer in self.layers:
-                h = layer(h, start_pos, freqs_cis,mask)
+                h = layer(h, start_pos, freqs_cis, mask)
 
             h = self.norm(h)
             output = self.output(h[:, -1, :])  # only compute last logits

@@ -12,12 +12,11 @@ import os
 import shutil
 import tempfile
 
-from huggingface_hub import snapshot_download
 import torch
+from huggingface_hub import snapshot_download
 from torch import nn
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
-
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 GB = 1 << 30
 
@@ -110,12 +109,8 @@ def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
                 gc.collect()
             torch.save(state_dict, os.path.join(target_model_path, file_name))
 
-        with open(
-            os.path.join(target_model_path, "pytorch_model.bin.index.json"), "w"
-        ) as f:
-            json.dump(
-                {"weight_map": weight_map, "metadata": {"total_size": total_size}}, f
-            )
+        with open(os.path.join(target_model_path, "pytorch_model.bin.index.json"), "w") as f:
+            json.dump({"weight_map": weight_map, "metadata": {"total_size": total_size}}, f)
 
     print(f"Saving the target model to {target_model_path}")
     delta_tokenizer.save_pretrained(target_model_path)
@@ -125,14 +120,10 @@ def apply_delta_low_cpu_mem(base_model_path, target_model_path, delta_path):
 def apply_delta(base_model_path, target_model_path, delta_path):
     print(f"Loading the delta weights from {delta_path}")
     delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
-    delta = AutoModelForCausalLM.from_pretrained(
-        delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    delta = AutoModelForCausalLM.from_pretrained(delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
     print(f"Loading the base model from {base_model_path}")
-    base = AutoModelForCausalLM.from_pretrained(
-        base_model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    base = AutoModelForCausalLM.from_pretrained(base_model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
     print("Applying the delta")
     for name, param in tqdm(base.state_dict().items(), desc="Applying delta"):
@@ -145,84 +136,83 @@ def apply_delta(base_model_path, target_model_path, delta_path):
 
 
 def huggingface2llama(key):
-    key=key.replace('model.layers','layers')
-    if 'embed_tokens' in key:
-        key=key.replace('embed_tokens','tok_embeddings')
-    if '.self_attn.' in key:
-        key = key.replace( '.self_attn.q_proj','.attention.wq')
-        key = key.replace( '.self_attn.k_proj','.attention.wk')
-        key = key.replace( '.self_attn.v_proj','.attention.wv')
-        key = key.replace( '.self_attn.o_proj','.attention.wo')
-    if '.input_layernorm.' in key:
-        key=key.replace('.input_layernorm.','.attention_norm.')
-    if '.post_attention_layernorm.' in key:
-        key = key.replace('.post_attention_layernorm.', '.ffn_norm.')
-    if '.mlp.' in key:
-        key=key.replace('.mlp.','.feed_forward.')
-        if '.down_proj.' in key:
-            key = key.replace('.down_proj.', '.w2.')
-        if '.up_proj.' in key:
-            key = key.replace('.up_proj.', '.w3.')
-        if '.gate_proj.' in key:
-            key = key.replace('.gate_proj.', '.w1.')
-    if key=='model.norm.weight':
-        key=key.replace('model.norm.','norm.')
-    if key=='lm_head.weight':
-        key=key.replace('lm_head.','output.')
+    key = key.replace("model.layers", "layers")
+    if "embed_tokens" in key:
+        key = key.replace("embed_tokens", "tok_embeddings")
+    if ".self_attn." in key:
+        key = key.replace(".self_attn.q_proj", ".attention.wq")
+        key = key.replace(".self_attn.k_proj", ".attention.wk")
+        key = key.replace(".self_attn.v_proj", ".attention.wv")
+        key = key.replace(".self_attn.o_proj", ".attention.wo")
+    if ".input_layernorm." in key:
+        key = key.replace(".input_layernorm.", ".attention_norm.")
+    if ".post_attention_layernorm." in key:
+        key = key.replace(".post_attention_layernorm.", ".ffn_norm.")
+    if ".mlp." in key:
+        key = key.replace(".mlp.", ".feed_forward.")
+        if ".down_proj." in key:
+            key = key.replace(".down_proj.", ".w2.")
+        if ".up_proj." in key:
+            key = key.replace(".up_proj.", ".w3.")
+        if ".gate_proj." in key:
+            key = key.replace(".gate_proj.", ".w1.")
+    if key == "model.norm.weight":
+        key = key.replace("model.norm.", "norm.")
+    if key == "lm_head.weight":
+        key = key.replace("lm_head.", "output.")
     return key
 
+
 def llama2huggingface(key):
-    key = key.replace('layers', 'model.layers')
-    if 'tok_embeddings' in key:
-        key = key.replace('tok_embeddings', 'model.embed_tokens')
-    if '.attention.wq' in key:
-        key = key.replace('.attention.wq', '.self_attn.q_proj')
-    if '.attention.wk' in key:
-        key = key.replace('.attention.wk', '.self_attn.k_proj')
-    if '.attention.wv' in key:
-        key = key.replace('.attention.wv', '.self_attn.v_proj')
-    if '.attention.wo' in key:
-        key = key.replace('.attention.wo', '.self_attn.o_proj')
-    if '.attention_norm.' in key:
-        key = key.replace('.attention_norm.', '.input_layernorm.')
-    if '.ffn_norm.' in key:
-        key = key.replace('.ffn_norm.', '.post_attention_layernorm.')
-    if '.w3.' in key:
-        key = key.replace('.w3.', '.up_proj.')
-    if '.w2.' in key:
-        key = key.replace('.w2.', '.down_proj.')
-    if '.w1.' in key:
-        key = key.replace('.w1.', '.gate_proj.')
-    if '.feed_forward.' in key:
-        key = key.replace('.feed_forward.', '.mlp.')
-    if key=='norm.weight':
-        key=key.replace('norm.','model.norm.')
-    if key=='output.weight':
-        key=key.replace('output.','lm_head.')
+    key = key.replace("layers", "model.layers")
+    if "tok_embeddings" in key:
+        key = key.replace("tok_embeddings", "model.embed_tokens")
+    if ".attention.wq" in key:
+        key = key.replace(".attention.wq", ".self_attn.q_proj")
+    if ".attention.wk" in key:
+        key = key.replace(".attention.wk", ".self_attn.k_proj")
+    if ".attention.wv" in key:
+        key = key.replace(".attention.wv", ".self_attn.v_proj")
+    if ".attention.wo" in key:
+        key = key.replace(".attention.wo", ".self_attn.o_proj")
+    if ".attention_norm." in key:
+        key = key.replace(".attention_norm.", ".input_layernorm.")
+    if ".ffn_norm." in key:
+        key = key.replace(".ffn_norm.", ".post_attention_layernorm.")
+    if ".w3." in key:
+        key = key.replace(".w3.", ".up_proj.")
+    if ".w2." in key:
+        key = key.replace(".w2.", ".down_proj.")
+    if ".w1." in key:
+        key = key.replace(".w1.", ".gate_proj.")
+    if ".feed_forward." in key:
+        key = key.replace(".feed_forward.", ".mlp.")
+    if key == "norm.weight":
+        key = key.replace("norm.", "model.norm.")
+    if key == "output.weight":
+        key = key.replace("output.", "lm_head.")
     return key
+
 
 def apply_model_delta_online(base_model, delta_path):
     print(f"Loading the delta weights from {delta_path}")
     # delta_tokenizer = AutoTokenizer.from_pretrained(delta_path, use_fast=False)
-    delta = AutoModelForCausalLM.from_pretrained(
-        delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
-    )
+    delta = AutoModelForCausalLM.from_pretrained(delta_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
 
-    candidate_weight=set()
-    exclude_weight=[]
+    candidate_weight = set()
+    exclude_weight = []
     for name, param in base_model.state_dict().items():
         if llama2huggingface(name) in delta.state_dict():
             candidate_weight.add(name)
         else:
             exclude_weight.append(name)
-    print("excluding these weights in llama: ",exclude_weight)
+    print("excluding these weights in llama: ", exclude_weight)
 
     print("Applying the delta")
     for name, param in base_model.named_parameters():
         if name in candidate_weight:
             assert llama2huggingface(name) in delta.state_dict()
             param.data += delta.state_dict()[llama2huggingface(name)].to(param.data.device)
-
 
 
 if __name__ == "__main__":
@@ -239,8 +229,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.low_cpu_mem:
-        apply_delta_low_cpu_mem(
-            args.base_model_path, args.target_model_path, args.delta_path
-        )
+        apply_delta_low_cpu_mem(args.base_model_path, args.target_model_path, args.delta_path)
     else:
         apply_delta(args.base_model_path, args.target_model_path, args.delta_path)
