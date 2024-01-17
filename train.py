@@ -17,7 +17,7 @@ from engine import train_one_epoch
 
 from util.datasets import ScienceQADataSet,InstrcutDataSet
 from lavin.mm_adaptation import LaVIN
-
+import random
 import bitsandbytes as bnb
 
 def get_args_parser():
@@ -146,8 +146,13 @@ def main(args):
     seed = args.seed + misc.get_rank()
     torch.manual_seed(seed)
     np.random.seed(seed)
+    g = torch.Generator()
+    g.manual_seed(seed)
+    random.seed(seed)
 
-    cudnn.benchmark = True
+    cudnn.benchmark = False
+    cudnn.deterministic = True
+
 
     if args.do_pretrain:
         dataset_train = InstrcutDataSet(args, 'all', args.llama_model_path, args.max_seq_len)
@@ -177,7 +182,10 @@ def main(args):
         num_workers=args.num_workers,
         pin_memory=args.pin_mem,
         drop_last=True,
+        generator=g,
+
     )
+
 
 
     
